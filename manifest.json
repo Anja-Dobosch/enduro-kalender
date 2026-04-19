@@ -1,11 +1,11 @@
 {
-  "name": "Team Dienstplan",
-  "short_name": "Dienstplan",
-  "description": "Team Dienstplan & Google Kalender App",
-  "start_url": "/",
+  "name": "Deutsches Enduro Museum",
+  "short_name": "Enduro Museum",
+  "description": "Kalender & Dienstplan – Deutsches Enduro Museum Zschopau",
+  "start_url": "/enduro-kalender/",
   "display": "standalone",
-  "background_color": "#0f1923",
-  "theme_color": "#0f1923",
+  "background_color": "#fdf6ee",
+  "theme_color": "#e07b39",
   "orientation": "portrait",
   "icons": [
     {

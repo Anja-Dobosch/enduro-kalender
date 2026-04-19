@@ -1,1060 +1,761 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="version" content="v12-final"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="theme-color" content="#fdf6ee"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-  <meta name="apple-mobile-web-app-title" content="Enduro Museum"/>
-  <title>Enduro Museum – Kalender</title>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
-  <style>
-    :root{
-      --bg:#fdf6ee;--surf:#fff8f2;--surf2:#fef0e0;--surf3:#fde8cc;
-      --bdr:rgba(180,100,30,0.13);--text:#3d1f00;--muted:rgba(100,55,10,0.5);
-      --accent:#e07b39;--red:#c0392b;--green:#2e7d52;--blue:#1d6fa4;
-      --r:14px;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)
-    }
-    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;overflow-x:hidden}
-    #app{max-width:520px;margin:0 auto;padding:calc(var(--st)+12px) 14px calc(var(--sb)+20px);min-height:100%}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#fdf6ee"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Enduro Museum"/>
+<title>Enduro Museum – Kalender</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#fdf6ee;color:#3d1f00;font-family:'Nunito',sans-serif;min-height:100vh}
+#wrap{max-width:520px;margin:0 auto;padding:12px 14px 80px}
 
-    /* HEADER */
-    .hdr{text-align:center;margin-bottom:18px}
-    .hdr .ey{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#b85c1a;font-weight:700;margin-bottom:3px}
-    .hdr h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;background:linear-gradient(135deg,#e07b39,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+/* PIN */
+#pin{position:fixed;inset:0;background:#fdf6ee;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+.pin-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:linear-gradient(135deg,#e07b39,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.pin-sub{font-size:13px;color:#a06030;margin-bottom:24px}
+.pin-dots{display:flex;gap:12px;margin-bottom:24px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(180,100,30,0.25);background:transparent;transition:.2s}
+.pin-dot.on{background:#e07b39;border-color:#e07b39}
+.pin-dot.err{background:#c0392b;border-color:#c0392b}
+.pin-grid{display:grid;grid-template-columns:repeat(3,80px);gap:10px}
+.pk{height:64px;border-radius:13px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;cursor:pointer;transition:.15s}
+.pk:active{background:#fde8cc;transform:scale(.93)}
+.pk.del{font-size:18px;color:#a06030}
+.pk.empty{border:none;background:transparent;cursor:default}
+#pin-err{color:#c0392b;font-size:12px;font-weight:700;margin-top:12px;min-height:18px}
 
-    /* TABS */
-    .tabs{display:flex;background:var(--surf);border-radius:13px;padding:3px;margin-bottom:16px;gap:2px}
-    .tab{flex:1;padding:10px 4px;border:none;background:none;color:var(--muted);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:11px;transition:all .2s;white-space:nowrap}
-    .tab.active{background:var(--surf2);color:var(--text);box-shadow:0 1px 4px rgba(160,80,20,0.1)}
+/* HEADER */
+.hdr{text-align:center;margin-bottom:16px}
+.hdr-ey{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b85c1a;font-weight:700;margin-bottom:3px}
+.hdr-h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,#e07b39,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 
-    /* CARD */
-    .card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:14px}
-    .cl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+/* TABS */
+.tabs{display:flex;background:#fff8f2;border-radius:12px;padding:3px;margin-bottom:14px;gap:2px;border:1px solid rgba(180,100,30,0.1)}
+.tab{flex:1;padding:9px 2px;border:none;background:none;color:rgba(100,55,10,0.5);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:10px;transition:.2s}
+.tab.on{background:#fef0e0;color:#3d1f00}
 
-    /* MONTH NAV */
-    .mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .mnav-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
-    .nb{width:34px;height:34px;border:1px solid var(--bdr);background:var(--surf2);border-radius:9px;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-    .nb:active{background:var(--surf3)}
+/* CARD */
+.card{background:#fff8f2;border:1px solid rgba(180,100,30,0.12);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-lbl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(100,55,10,0.45);margin-bottom:10px}
 
-    /* CALENDAR GRID */
-    .cal-head{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
-    .cal-head span{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding:3px 0}
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-    .cal-cell{min-height:64px;border-radius:9px;border:1px solid var(--bdr);background:var(--surf2);display:flex;flex-direction:column;padding:3px;cursor:pointer;transition:background .15s;overflow:hidden;position:relative}
-    .cal-cell:active{opacity:.75}
-    .cal-cell.emp{background:transparent;border-color:transparent;cursor:default}
-    .cal-cell.tod{border-color:var(--accent);background:rgba(224,123,57,0.09)}
-    .cal-cell.has-ev{background:#fff3e8;border-color:rgba(224,123,57,0.35)}
-    .cal-cell.has-sh{background:#f0faf4;border-color:rgba(46,125,82,0.3)}
-    .cal-cell.has-ev.has-sh{background:#fff8f0;border-color:rgba(224,123,57,0.4)}
-    .day-num{font-size:11px;font-weight:800;color:var(--muted);line-height:1;flex-shrink:0}
-    .tod .day-num{color:var(--accent)}
-    .ev-pill{font-size:8px;font-weight:800;border-radius:3px;padding:1px 3px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;background:rgba(224,123,57,0.18);color:#7a3800}
-    .sh-pill{font-size:8px;font-weight:800;border-radius:3px;padding:1px 3px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
-    .bd-pill{font-size:8px;font-weight:800;border-radius:3px;padding:1px 3px;margin-top:1px;background:rgba(192,57,43,0.12);color:#7b1a10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+/* MONTH NAV */
+.mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mnav-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
+.mnav-btn{width:32px;height:32px;border:1px solid rgba(180,100,30,0.15);background:#fef0e0;border-radius:9px;color:#3d1f00;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-    /* LEGEND */
-    .legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-    .leg{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
-    .leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+/* CALENDAR */
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cal-head span{text-align:center;font-size:10px;font-weight:700;color:rgba(100,55,10,0.4)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-cell{min-height:58px;border-radius:8px;border:1px solid rgba(180,100,30,0.1);background:#fef0e0;display:flex;flex-direction:column;padding:3px;cursor:pointer;overflow:hidden;transition:.15s}
+.cal-cell:active{opacity:.7}
+.cal-cell.emp{background:transparent;border-color:transparent;cursor:default}
+.cal-cell.tod{border-color:#e07b39;background:rgba(224,123,57,0.1)}
+.cal-cell.hev{background:#fff3e8;border-color:rgba(224,123,57,0.35)}
+.cal-cell.hsh{background:#f0faf4;border-color:rgba(46,125,82,0.3)}
+.day-n{font-size:10px;font-weight:800;color:rgba(100,55,10,0.4);line-height:1}
+.tod .day-n{color:#e07b39}
+.ev-lbl{font-size:7.5px;font-weight:800;border-radius:3px;padding:1px 3px;margin-top:2px;background:rgba(224,123,57,0.18);color:#7a3800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-lbl{font-size:7.5px;font-weight:800;border-radius:3px;padding:1px 3px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-    /* UPCOMING EVENTS LIST */
-    .ev-row{background:var(--surf2);border:1px solid var(--bdr);border-radius:11px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s}
-    .ev-row:active{opacity:.75}
-    .ev-row-top{display:flex;align-items:flex-start;gap:12px}
-    .ev-date-box{background:var(--accent);border-radius:8px;padding:6px 10px;text-align:center;min-width:44px;flex-shrink:0}
-    .ev-date-box .edd{font-size:18px;font-weight:900;color:#fff;font-family:'Syne',sans-serif;line-height:1}
-    .ev-date-box .edm{font-size:9px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase}
-    .ev-info{flex:1}
-    .ev-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px}
-    .ev-time{font-size:12px;color:var(--muted);font-weight:600}
-    .ev-desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
-    .ev-members{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-    .ev-mbadge{font-size:11px;font-weight:700;border-radius:10px;padding:3px 9px}
+/* UPCOMING */
+.up-row{background:#fef0e0;border:1px solid rgba(180,100,30,0.12);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer}
+.up-top{display:flex;align-items:flex-start;gap:10px}
+.up-dbox{background:#e07b39;border-radius:7px;padding:5px 8px;text-align:center;min-width:38px;flex-shrink:0}
+.up-dd{font-size:16px;font-weight:900;color:#fff;line-height:1;font-family:'Syne',sans-serif}
+.up-dm{font-size:8px;font-weight:700;color:rgba(255,255,255,.85);text-transform:uppercase}
+.up-title{font-size:14px;font-weight:800;margin-bottom:2px}
+.up-time{font-size:11px;color:rgba(100,55,10,.55)}
+.up-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.up-badge{font-size:10px;font-weight:700;border-radius:9px;padding:3px 8px}
 
-    /* INPUTS */
-    .form-group{margin-bottom:12px}
-    .form-label{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block}
-    .form-input{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:10px 13px;color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:600}
-    .form-input::placeholder{color:var(--muted)}
-    .form-row{display:flex;gap:8px}
-    .form-row .form-group{flex:1}
-    .btn{width:100%;padding:12px;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s}
-    .btn:active{transform:scale(0.97)}
-    .btn-primary{background:linear-gradient(135deg,#e07b39,#c0392b);color:#fff}
-    .btn-success{background:linear-gradient(135deg,#2e7d52,#1a5c35);color:#fff}
-    .btn-ghost{background:var(--surf2);border:1px solid var(--bdr);color:var(--muted)}
-    .btn-danger{background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.25);color:#c0392b}
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(61,31,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:12px 12px 20px}
+.sheet{background:#fff8f2;border:1px solid rgba(180,100,30,.12);border-radius:22px 22px 18px 18px;padding:22px 18px 18px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.sh-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px}
+.sh-sub{font-size:12px;color:rgba(100,55,10,.5);margin-bottom:16px}
+.sh-div{border:none;border-top:1px solid rgba(180,100,30,.1);margin:12px 0}
 
-    /* CHIPS */
-    .chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-    .chip{display:flex;align-items:center;gap:5px;padding:5px 10px 5px 8px;border-radius:18px;font-size:12px;font-weight:700;background:var(--surf2);border:1px solid var(--bdr);color:var(--text)}
-    .chip .rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 0 0 2px;line-height:1}
-    .add-row{display:flex;gap:7px}
-    .add-row input{flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:600}
-    .add-row input::placeholder{color:var(--muted)}
-    .add-row button{padding:9px 14px;background:linear-gradient(135deg,#e07b39,#c0392b);border:none;border-radius:9px;color:#fff;font-weight:800;font-size:18px;cursor:pointer}
+/* MEMBERS IN MODAL */
+.m-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(46,125,82,.07);border:1.5px solid rgba(46,125,82,.25);margin-bottom:6px}
+.m-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.m-name{font-size:14px;font-weight:700;flex:1}
+.m-time{font-size:12px;color:#2e7d52;font-weight:600}
+.m-out{background:none;border:1px solid rgba(192,57,43,.25);border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;color:#c0392b}
+.eintragen-btn{width:100%;padding:13px;background:#fff8f2;border:2px dashed rgba(224,123,57,.5);border-radius:10px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;color:#e07b39;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
 
-    /* SYNC */
-    .sbar{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-bottom:10px}
-    .sdot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
-    .sdot.spin{background:var(--accent);animation:pu 1s infinite}
-    @keyframes pu{0%,100%{opacity:1}50%{opacity:.3}}
+/* MEMBER PICKER */
+.pick-btn{width:100%;display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:10px;background:#fef0e0;border:1px solid rgba(180,100,30,.15);margin-bottom:7px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:#3d1f00;cursor:pointer}
 
-    /* MODAL OVERLAY */
-    .ov{position:fixed;inset:0;background:rgba(61,31,0,0.5);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:12px;padding-bottom:calc(var(--sb)+12px);animation:fi .2s}
-    @keyframes fi{from{opacity:0}to{opacity:1}}
-    .sheet{background:var(--surf);border:1px solid var(--bdr);border-radius:22px 22px 18px 18px;padding:22px 18px 20px;width:100%;max-width:480px;animation:su .22s ease;max-height:90vh;overflow-y:auto}
-    @keyframes su{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .sheet-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:3px;color:var(--text)}
-    .sheet-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
-    .sheet-divider{border:none;border-top:1px solid var(--bdr);margin:14px 0}
-    .member-btn{width:100%;display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:11px;background:var(--surf2);border:1.5px solid var(--bdr);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:7px;transition:all .15s}
-    .member-btn.on{border-color:var(--green);background:rgba(46,125,82,0.08)}
-    .member-btn .ck{margin-left:auto;font-size:18px}
-    .mbr-info{flex:1;text-align:left}
-    .mbr-time{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+/* FORM */
+.f-group{margin-bottom:12px}
+.f-lbl{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(100,55,10,.45);margin-bottom:5px;display:block}
+.f-inp{width:100%;background:#fef0e0;border:1px solid rgba(180,100,30,.15);border-radius:9px;padding:10px 13px;color:#3d1f00;font-family:'Nunito',sans-serif;font-size:14px;font-weight:600}
+.f-row{display:flex;gap:8px}
+.f-row .f-group{flex:1}
+.btn-pri{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#e07b39,#c0392b);color:#fff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px}
+.btn-suc{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#2e7d52,#1a5c35);color:#fff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px}
+.btn-gh{width:100%;padding:12px;border:1px solid rgba(180,100,30,.15);border-radius:10px;background:#fef0e0;color:rgba(100,55,10,.6);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.btn-del{width:100%;padding:10px;border:1px solid rgba(192,57,43,.25);border-radius:10px;background:rgba(192,57,43,.06);color:#c0392b;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px}
 
-    /* BIRTHDAY GRID (compact) */
-    .bk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
-    .bk-cell{min-height:46px;border-radius:7px;border:1px solid var(--bdr);background:var(--surf2);display:flex;flex-direction:column;padding:3px 2px;cursor:pointer;overflow:hidden}
-    .bk-cell.emp{background:transparent;border-color:transparent;cursor:default}
-    .bk-cell.tod{border-color:var(--accent)}
-    .bk-cell.hasbday{border-color:rgba(192,57,43,0.45);background:rgba(192,57,43,0.07)}
-    .bk-name{font-size:8px;font-weight:800;color:#9b1c10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-    .bday-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr)}
-    .bday-row:last-child{border-bottom:none}
-    .bday-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;background:rgba(192,57,43,0.1);color:#9b1c10;border:1.5px solid rgba(192,57,43,0.25)}
-    .bday-in{font-size:11px;font-weight:700;color:#9b1c10;background:rgba(192,57,43,0.1);border-radius:6px;padding:2px 8px;flex-shrink:0}
+/* CHIPS */
+.chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{display:flex;align-items:center;gap:5px;padding:5px 9px 5px 7px;border-radius:16px;font-size:12px;font-weight:700;background:#fef0e0;border:1px solid rgba(180,100,30,.15)}
+.chip-x{background:none;border:none;color:rgba(100,55,10,.4);cursor:pointer;font-size:15px;padding:0 0 0 2px}
+.add-row{display:flex;gap:7px;margin-top:8px}
+.add-row input{flex:1;background:#fef0e0;border:1px solid rgba(180,100,30,.15);border-radius:9px;padding:9px 12px;color:#3d1f00;font-family:'Nunito',sans-serif;font-size:14px;font-weight:600}
+.add-row button{padding:9px 14px;background:linear-gradient(135deg,#e07b39,#c0392b);border:none;border-radius:9px;color:#fff;font-weight:800;font-size:18px;cursor:pointer}
 
-    /* BOTTOM NAV */
-    .bnav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--bdr);padding:6px 8px calc(var(--sb)+6px);display:flex;gap:2px;max-width:520px;margin:0 auto;z-index:50}
-    .bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border:none;background:none;color:var(--muted);font-family:'Nunito',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:9px;transition:all .2s}
-    .bn.on{color:var(--accent);background:rgba(224,123,57,0.09)}
-    .bn.bon.on{color:#9b1c10;background:rgba(192,57,43,0.08)}
-    .bn .ic{font-size:21px}
+/* SYNC BAR */
+.sbar{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(100,55,10,.5);margin-bottom:10px}
+.sdot{width:7px;height:7px;border-radius:50%;background:#2e7d52;flex-shrink:0}
 
-    /* ADMIN BADGE */
-    .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(192,57,43,0.1);color:#c0392b;border:1px solid rgba(192,57,43,0.25);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:800;margin-bottom:12px}
+/* BDAY */
+.bk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:8px}
+.bk-cell{min-height:46px;border-radius:7px;border:1px solid rgba(180,100,30,.1);background:#fef0e0;display:flex;flex-direction:column;padding:3px;cursor:pointer;overflow:hidden}
+.bk-cell.hasbday{border-color:rgba(192,57,43,.4);background:rgba(192,57,43,.07)}
+.bkn{font-size:7.5px;font-weight:800;color:#9b1c10;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bday-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(180,100,30,.08)}
+.bday-row:last-child{border-bottom:none}
+.bday-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;background:rgba(192,57,43,.1);color:#9b1c10;border:1.5px solid rgba(192,57,43,.25)}
+.bday-in{font-size:10px;font-weight:700;color:#9b1c10;background:rgba(192,57,43,.1);border-radius:5px;padding:2px 7px;flex-shrink:0}
 
-    /* STAT */
-    .stat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr)}
-    .stat-row:last-child{border-bottom:none}
+/* ADMIN */
+.admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(192,57,43,.1);color:#c0392b;border:1px solid rgba(192,57,43,.25);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:800;margin-bottom:10px}
 
-    /* PIN SCREEN */
-    #pin-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
-    #pin-screen h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,#e07b39,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
-    #pin-screen p{font-size:13px;color:var(--muted);margin-bottom:28px;text-align:center}
-    .pin-dots{display:flex;gap:14px;margin-bottom:28px}
-    .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--bdr);background:transparent;transition:all .2s}
-    .pin-dot.filled{background:var(--accent);border-color:var(--accent)}
-    .pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s}
-    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-    .pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:270px}
-    .pin-key{height:66px;border-radius:14px;border:1.5px solid var(--bdr);background:var(--surf);color:var(--text);font-family:'Syne',sans-serif;font-size:24px;font-weight:800;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;width:100%}
-    .pin-key:active{background:var(--surf3);transform:scale(0.93)}
-    .pin-key.del{font-size:16px;color:var(--muted)}
-    .pin-key.empty{border-color:transparent;background:transparent;cursor:default;pointer-events:none}
-    #pin-error{font-size:12px;color:var(--red);font-weight:700;margin-top:14px;min-height:18px;text-align:center}
+/* STAT */
+.stat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(180,100,30,.08)}
+.stat-row:last-child{border-bottom:none}
 
-    .empty{text-align:center;padding:28px 14px;color:var(--muted);font-size:13px}
-    .empty .em{font-size:36px;display:block;margin-bottom:9px}
-  </style>
+.empty{text-align:center;padding:24px;color:rgba(100,55,10,.45);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.leg{display:flex;align-items:center;gap:3px;font-size:10px;color:rgba(100,55,10,.45)}
+</style>
 </head>
 <body>
 
 <!-- PIN SCREEN -->
-<div id="pin-screen" style="position:fixed;inset:0;background:#fdf6ee;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Nunito,sans-serif">
-  <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;background:linear-gradient(135deg,#e07b39,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px">Enduro Museum</div>
-  <div style="font-size:14px;color:#a06030;margin-bottom:28px">Bitte PIN eingeben</div>
-  <div id="pdots" style="display:flex;gap:14px;margin-bottom:28px"></div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:260px">
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('1')">1</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('2')">2</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('3')">3</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('4')">4</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('5')">5</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('6')">6</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('7')">7</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('8')">8</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('9')">9</button>
-    <div></div>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('0')">0</button>
-    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#a06030;font-size:20px;cursor:pointer" onclick="pinDel()">⌫</button>
+<div id="pin">
+  <div class="pin-title">Enduro Museum</div>
+  <div class="pin-sub">Bitte PIN eingeben</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="dot0"></div>
+    <div class="pin-dot" id="dot1"></div>
+    <div class="pin-dot" id="dot2"></div>
+    <div class="pin-dot" id="dot3"></div>
+    <div class="pin-dot" id="dot4"></div>
   </div>
-  <div id="pin-error" style="color:#c0392b;font-size:13px;font-weight:700;margin-top:16px;min-height:20px"></div>
+  <div class="pin-grid">
+    <button class="pk" onclick="PT('1')">1</button>
+    <button class="pk" onclick="PT('2')">2</button>
+    <button class="pk" onclick="PT('3')">3</button>
+    <button class="pk" onclick="PT('4')">4</button>
+    <button class="pk" onclick="PT('5')">5</button>
+    <button class="pk" onclick="PT('6')">6</button>
+    <button class="pk" onclick="PT('7')">7</button>
+    <button class="pk" onclick="PT('8')">8</button>
+    <button class="pk" onclick="PT('9')">9</button>
+    <div class="pk empty"></div>
+    <button class="pk" onclick="PT('0')">0</button>
+    <button class="pk del" onclick="PD()">⌫</button>
+  </div>
+  <div id="pin-err"></div>
 </div>
-<script>
-var _pin='';
-function _dots(){
-  var d=document.getElementById('pdots');
-  if(!d)return;
-  d.innerHTML='';
-  for(var i=0;i<5;i++){
-    var s=document.createElement('div');
-    s.style.cssText='width:16px;height:16px;border-radius:50%;border:2px solid rgba(180,100,30,0.2);background:'+(i<_pin.length?'#e07b39':'transparent');
-    d.appendChild(s);
-  }
-}
-function pinTap(d){
-  _pin+=d;_dots();
-  if(_pin.length===5){
-    if(_pin==='09405'){
-      localStorage.setItem('pin_ok','1');
-      localStorage.setItem('pin_ts',Date.now().toString());
-      document.getElementById('pin-screen').style.display='none';
-      render();syncDown();
-    } else {
-      document.getElementById('pin-error').textContent='Falscher PIN';
-      var dots=document.getElementById('pdots').children;
-      for(var i=0;i<dots.length;i++) dots[i].style.background='#c0392b';
-      setTimeout(function(){_pin='';_dots();document.getElementById('pin-error').textContent='';},900);
-    }
-  }
-}
-function pinDel(){if(_pin.length>0){_pin=_pin.slice(0,-1);_dots();}}
-_dots();
-var _pok=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
-if(_pok) document.getElementById('pin-screen').style.display='none';
-</script>
 
-<div id="app"></div>
+<div id="wrap" style="display:none">
+  <div class="hdr">
+    <div class="hdr-ey">Deutsches Enduro Museum</div>
+    <div class="hdr-h1">Kalender & Dienstplan</div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="content"></div>
+</div>
+
+<!-- MODAL -->
+<div class="ov" id="modal" style="display:none" onclick="closeModal()">
+  <div class="sheet" id="modal-sheet" onclick="event.stopPropagation()"></div>
+</div>
 
 <script>
-// ══════════════════════════════════════════════════
-// KONSTANTEN
-// ══════════════════════════════════════════════════
+// ─── KONSTANTEN ───────────────────────────────────
 const MONATE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const MONATE_K=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 const WOCHENTAGE=['Mo','Di','Mi','Do','Fr','Sa','So'];
 const FARBEN=['#c0392b','#e07b39','#2e7d52','#1d6fa4','#7b2d8b','#b5721a','#2c6e6e','#8b4513','#4a5568','#c2185b'];
-const PIN_CODE='09405';
-const ADMIN_PW='museum2024'; // Admin-Passwort (zusätzlich zum PIN)
+const PIN='09405';
+const ADMIN_PW='museum2024';
+const BIN_ID='69e3a735856a68218949ebf2';
+const API_KEY='$2a$10$de41ugq7EutRChiTkZy4oeXF4277osh.7O44kb.a/AqwqeAXw51Ii';
 
-// ══════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════
-const DEFAULT_BIN_ID='69e3a735856a68218949ebf2';
-const DEFAULT_API_KEY='$2a$10$de41ugq7EutRChiTkZy4oeXF4277osh.7O44kb.a/AqwqeAXw51Ii';
-
-let S={
-  binId:localStorage.getItem('em_binId')||DEFAULT_BIN_ID,
-  apiKey:localStorage.getItem('em_apiKey')||DEFAULT_API_KEY,
-  tab:'kalender',
+// ─── STATE ────────────────────────────────────────
+var S={
+  tab:'kal',
   jahr:new Date().getFullYear(), monat:new Date().getMonth(),
   bjahr:new Date().getFullYear(), bmonat:new Date().getMonth(),
-  // events: [{id, titel, datum:'YYYY-MM-DD', vonZeit:'HH:MM', bisZeit:'HH:MM', beschreibung, farbe}]
+  // events: [{id,titel,datum,von,bis,beschreibung}]
   events:[],
-  // shifts: {'YYYY-MM-DD': [{name, color, von:'HH:MM', bis:'HH:MM'}]}
-  shifts:{},
-  members:[{name:'Admin',color:FARBEN[0]}],
+  // eintraege: {'YYYY-MM-DD': [{name,color,von,bis,evId}]}
+  eintraege:{},
+  members:[],
   birthdays:[],
-  newM:'', newBdName:'', newBdDate:'',
-  modal:null,
-  syncing:false, lastSync:null,
   isAdmin:false,
-  adminInput:'',
+  lastSync:null
 };
 
-// Lade gespeicherte Daten
+// Lade lokale Daten
 try{
-  const sv=JSON.parse(localStorage.getItem('em_state')||'{}');
-  if(sv.events)   S.events=sv.events;
-  if(sv.shifts)   S.shifts=sv.shifts;
-  if(sv.members)  S.members=sv.members;
-  if(sv.birthdays)S.birthdays=sv.birthdays;
-  if(sv.isAdmin)  S.isAdmin=sv.isAdmin;
+  var ls=JSON.parse(localStorage.getItem('em4')||'{}');
+  if(ls.events) S.events=ls.events;
+  if(ls.eintraege) S.eintraege=ls.eintraege;
+  if(ls.members) S.members=ls.members;
+  if(ls.birthdays) S.birthdays=ls.birthdays;
+  if(ls.isAdmin) S.isAdmin=ls.isAdmin;
 }catch(e){}
 
-function save(){
-  localStorage.setItem('em_state',JSON.stringify({
-    events:S.events, shifts:S.shifts, members:S.members,
-    birthdays:S.birthdays, isAdmin:S.isAdmin
+function lokal(){
+  localStorage.setItem('em4',JSON.stringify({
+    events:S.events, eintraege:S.eintraege,
+    members:S.members, birthdays:S.birthdays, isAdmin:S.isAdmin
   }));
 }
 
-// ══════════════════════════════════════════════════
-// CLOUD SYNC via JSONBin.io (kostenlos, geräteübergreifend)
-// ══════════════════════════════════════════════════
-const JSONBIN_KEY='$2a$10$enduromuseum2024xyzabc'; // wird unten konfiguriert
-const JSONBIN_URL='https://api.jsonbin.io/v3/b/DEINE_BIN_ID'; // wird unten gesetzt
-
-// Echter Sync über JSONBin - funktioniert auf ALLEN Geräten
-async function syncUp(){
-  if(!S.binId||!S.apiKey)return;
+// ─── CLOUD SYNC ───────────────────────────────────
+async function hoch(){
   try{
-    const payload={events:S.events,shifts:S.shifts,members:S.members,birthdays:S.birthdays};
-    await fetch('https://api.jsonbin.io/v3/b/'+S.binId,{
+    await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{
       method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':S.apiKey,'X-Bin-Private':'false'},
-      body:JSON.stringify(payload)
+      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
+      body:JSON.stringify({events:S.events,eintraege:S.eintraege,members:S.members,birthdays:S.birthdays})
     });
     S.lastSync=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    localStorage.setItem('em_lastsync',S.lastSync);
-  }catch(e){console.log('Sync up error:',e);}
+  }catch(e){console.log('Sync hoch:',e);}
 }
 
-async function syncDown(){
-  if(!S.binId||!S.apiKey)return;
+async function runter(){
   try{
-    const res=await fetch('https://api.jsonbin.io/v3/b/'+S.binId+'/latest',{
-      headers:{'X-Master-Key':S.apiKey}
-    });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    const d=json.record;
-    if(d.events)   S.events=d.events;
-    if(d.shifts)   S.shifts=d.shifts;
-    if(d.members)  S.members=d.members;
-    if(d.birthdays)S.birthdays=d.birthdays;
+    var r=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    if(!r.ok)return;
+    var j=await r.json();
+    var d=j.record;
+    if(d.events) S.events=d.events;
+    if(d.eintraege) S.eintraege=d.eintraege;
+    if(d.members) S.members=d.members;
+    if(d.birthdays) S.birthdays=d.birthdays;
     S.lastSync=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-    save();
-  }catch(e){console.log('Sync down error:',e);}
-  // Nur rendern wenn PIN bereits eingegeben wurde
-  const pinOk=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
-  if(pinOk) render();
+    lokal();
+  }catch(e){console.log('Sync runter:',e);}
 }
 
-// Erstellt automatisch einen neuen JSONBin beim ersten Start
-async function initBin(){
-  if(S.binId&&S.apiKey)return; // bereits konfiguriert
-  // Verwende gespeicherte Credentials
-  const savedId=localStorage.getItem('em_binId');
-  const savedKey=localStorage.getItem('em_apiKey');
-  if(savedId&&savedKey){S.binId=savedId;S.apiKey=savedKey;return;}
-  // Zeige Setup-Dialog
-  // binSetup modal wird bei Bedarf gezeigt
-}
-
-// ══════════════════════════════════════════════════
-// HILFSFUNKTIONEN
-// ══════════════════════════════════════════════════
-function dk(y,m,d){return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
-function dimF(y,m){return new Date(y,m+1,0).getDate()}
-function wochentagOffset(y,m){let d=new Date(y,m,1).getDay();return d===0?6:d-1}
-function istHeute(y,m,d){const n=new Date();return n.getFullYear()===y&&n.getMonth()===m&&n.getDate()===d}
-function ini(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
-function geburtstageAmTag(m,d){return S.birthdays.filter(b=>b.monat===m+1&&b.tag===d)}
+// ─── HILFSFUNKTIONEN ──────────────────────────────
+function dk(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function dim(y,m){return new Date(y,m+1,0).getDate()}
+function off(y,m){var d=new Date(y,m,1).getDay();return d===0?6:d-1}
+function heute(){var n=new Date();return dk(n.getFullYear(),n.getMonth(),n.getDate())}
+function istH(y,m,d){return heute()===dk(y,m,d)}
+function ini(n){return n.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)}
+function evAmTag(key){return S.events.filter(function(e){return e.datum===key})}
+function shAmTag(key){return S.eintraege[key]||[]}
+function bdAmTag(m,d){return S.birthdays.filter(function(b){return b.monat===m+1&&b.tag===d})}
 function tageNoch(b){
-  const h=new Date();const heute=new Date(h.getFullYear(),h.getMonth(),h.getDate());
-  let nx=new Date(heute.getFullYear(),b.monat-1,b.tag);
-  if(nx<heute)nx=new Date(heute.getFullYear()+1,b.monat-1,b.tag);
-  return Math.round((nx-heute)/86400000);
+  var h=new Date();var t=new Date(h.getFullYear(),h.getMonth(),h.getDate());
+  var n=new Date(t.getFullYear(),b.monat-1,b.tag);
+  if(n<t)n=new Date(t.getFullYear()+1,b.monat-1,b.tag);
+  return Math.round((n-t)/86400000);
 }
-function alterWird(b){
-  if(!b.jahr)return null;
-  const n=new Date();let yr=n.getFullYear();
-  if(new Date(yr,b.monat-1,b.tag)<n)yr++;
-  return yr-b.jahr;
-}
-function zeitFormatieren(str){return str||''}
-function eventsAmTag(key){return S.events.filter(e=>e.datum===key)}
-function shiftsAmTag(key){return S.shifts[key]||[]}
-function naechsteId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
 
-// ══════════════════════════════════════════════════
-// AKTIONEN
-// ══════════════════════════════════════════════════
-function mitgliedEintragen(evtId, member, von, bis){
-  // Finde das Event-Datum
-  const ev=S.events.find(e=>e.id===evtId);
-  if(!ev)return;
-  const key=ev.datum;
-  if(!S.shifts[key])S.shifts[key]=[];
-  const bestehend=S.shifts[key].find(x=>x.name===member.name&&x.evtId===evtId);
-  if(bestehend){
-    // Austragen
-    S.shifts[key]=S.shifts[key].filter(x=>!(x.name===member.name&&x.evtId===evtId));
-  } else {
-    S.shifts[key].push({name:member.name,color:member.color,von,bis,evtId});
+// ─── PIN ──────────────────────────────────────────
+var _p='';
+function _upd(){
+  for(var i=0;i<5;i++){
+    var d=document.getElementById('dot'+i);
+    if(d){d.className='pin-dot'+(i<_p.length?' on':'');}
   }
-  save();syncUp();render();
 }
-
-function veranstaltungSpeichern(data){
-  if(data.id){
-    // Bearbeiten
-    const idx=S.events.findIndex(e=>e.id===data.id);
-    if(idx>=0) S.events[idx]={...S.events[idx],...data};
-  } else {
-    S.events.push({id:naechsteId(),...data});
-  }
-  S.events.sort((a,b)=>a.datum.localeCompare(b.datum));
-  save();syncUp();S.modal=null;render();
-}
-
-function veranstaltungLoeschen(id){
-  if(!confirm('Veranstaltung wirklich löschen?'))return;
-  S.events=S.events.filter(e=>e.id!==id);
-  // Auch zugehörige Einträge löschen
-  Object.keys(S.shifts).forEach(k=>{
-    S.shifts[k]=S.shifts[k].filter(x=>x.evtId!==id);
-  });
-  save();syncUp();S.modal=null;render();
-}
-
-function mitgliedHinzufuegen(){
-  const n=S.newM.trim();
-  if(!n||S.members.some(m=>m.name===n))return;
-  S.members.push({name:n,color:FARBEN[S.members.length%FARBEN.length]});
-  S.newM='';save();syncUp();render();
-}
-function mitgliedEntfernen(name){
-  S.members=S.members.filter(m=>m.name!==name);
-  Object.keys(S.shifts).forEach(k=>{S.shifts[k]=S.shifts[k].filter(x=>x.name!==name)});
-  save();syncUp();render();
-}
-function geburtstagsHinzufuegen(){
-  const n=S.newBdName.trim();const dt=S.newBdDate;
-  if(!n||!dt)return;
-  const p=dt.split('-');
-  const e={name:n,monat:parseInt(p[1]),tag:parseInt(p[2])};
-  if(p[0]&&parseInt(p[0])>1900)e.jahr=parseInt(p[0]);
-  S.birthdays.push(e);S.newBdName='';S.newBdDate='';
-  save();syncUp();S.modal=null;render();
-}
-function geburtstagsLoeschen(i){if(confirm('Geburtstag löschen?')){S.birthdays.splice(i,1);save();syncUp();render();}}
-
-// ══════════════════════════════════════════════════
-// RENDER
-// ══════════════════════════════════════════════════
-function render(){document.getElementById('app').innerHTML=baueApp();bind()}
-
-function baueApp(){return`
-  ${baueHeader()}
-  ${baueTabs()}
-  ${S.tab==='kalender'?baueKalender():''}
-  ${S.tab==='geburtstage'?baueGeburtstage():''}
-  ${S.tab==='team'?baueTeam():''}
-  ${baueBnav()}
-  ${S.modal?baueModal():''}
-`}
-
-function baueHeader(){
-  return`<div class="hdr">
-    <div class="ey">Deutsches Enduro Museum</div>
-    <h1>Kalender &amp; Dienstplan</h1>
-  </div>`;
-}
-
-function baueTabs(){return`<div class="tabs">
-  <button class="tab${S.tab==='kalender'?' active':''}" onclick="ST('kalender')">📅 Kalender</button>
-  <button class="tab${S.tab==='geburtstage'?' active':''}" onclick="ST('geburtstage')">🎂 Geburtstage</button>
-  <button class="tab${S.tab==='team'?' active':''}" onclick="ST('team')">👥 Team</button>
-</div>`}
-
-// ── KALENDER TAB ──────────────────────────────────
-function baueKalender(){
-  const y=S.jahr,m=S.monat;
-  const dim=dimF(y,m), off=wochentagOffset(y,m);
-  let cells='';
-  for(let i=0;i<off;i++) cells+=`<div class="cal-cell emp"></div>`;
-  for(let d=1;d<=dim;d++){
-    const key=dk(y,m,d);
-    const evts=eventsAmTag(key);
-    const slist=shiftsAmTag(key);
-    const bds=geburtstageAmTag(m,d);
-    const heute=istHeute(y,m,d);
-    let cls='cal-cell';
-    if(heute) cls+=' tod';
-    if(evts.length) cls+=' has-ev';
-    if(slist.length) cls+=' has-sh';
-    const evPills=evts.map(e=>`<div class="ev-pill">📌 ${e.titel}</div>`).join('');
-    const shPills=[...new Set(slist.map(x=>x.name))].slice(0,3).map(n=>{
-      const m=S.members.find(x=>x.name===n)||{color:'#888'};
-      return`<div class="sh-pill" style="background:${m.color}20;color:${m.color}">${n}</div>`;
-    }).join('');
-    const bdPills=bds.map(b=>`<div class="bd-pill">🎂${b.name}</div>`).join('');
-    cells+=`<div class="${cls}" onclick="TK('${key}')">
-      <span class="day-num">${d}</span>
-      ${evPills}${shPills}${bdPills}
-    </div>`;
-  }
-
-  const syncBar='<div class="sbar">'+
-    '<div class="sdot"></div>'+
-    (S.binId?('<span>☁️ Stand: '+(S.lastSync||'–')+'</span>'):
-    '<span style="color:var(--accent2);cursor:pointer" onclick="showBinSetup()">⚠️ Kein Cloud-Sync – hier tippen um einzurichten</span>')+
-    '<span style="margin-left:auto;cursor:pointer;color:var(--accent);font-weight:700" onclick="syncDown()">↻</span>'+
-    '</div>';
-
-  const adminBtn=S.isAdmin
-    ?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <div class="admin-badge">🔑 Admin-Modus aktiv</div>
-        <button onclick="adminAbmelden()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700">Abmelden</button>
-      </div>
-      <button class="btn btn-primary" onclick="S.modal={type:'neueVeranstaltung'};render()" style="margin-bottom:14px">+ Veranstaltung erstellen</button>`
-    :`<button onclick="S.modal={type:'adminLogin'};render()" style="background:none;border:1px solid var(--bdr);border-radius:9px;padding:7px 14px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:14px;width:100%">🔑 Als Admin anmelden</button>`;
-
-  // Kommende Veranstaltungen
-  const heute=new Date();const heuteStr=dk(heute.getFullYear(),heute.getMonth(),heute.getDate());
-  const kommend=S.events.filter(e=>e.datum>=heuteStr).slice(0,10);
-
-  const evList=kommend.length?kommend.map(ev=>{
-    const [ej,em,ed]=ev.datum.split('-');
-    const eintraege=Object.values(S.shifts).flat().filter(x=>x.evtId===ev.id);
-    return`<div class="ev-row" onclick="EO('${ev.id}')">
-      <div class="ev-row-top">
-        <div class="ev-date-box">
-          <div class="edd">${ed}</div>
-          <div class="edm">${MONATE_K[parseInt(em)-1]}</div>
-        </div>
-        <div class="ev-info">
-          <div class="ev-name">${ev.titel}</div>
-          <div class="ev-time">🕐 ${ev.vonZeit} – ${ev.bisZeit} Uhr</div>
-          ${ev.beschreibung?`<div class="ev-desc">${ev.beschreibung}</div>`:''}
-        </div>
-      </div>
-      ${eintraege.length?`<div class="ev-members">${eintraege.map(x=>`<span class="ev-mbadge" style="background:${x.color}18;border:1px solid ${x.color}44;color:${x.color}">${x.name}</span>`).join('')}</div>`:''}
-    </div>`;
-  }).join(''):`<div class="empty"><span class="em">📭</span>Noch keine Veranstaltungen geplant</div>`;
-
-  return`
-    <div class="card">
-      ${syncBar}
-      ${adminBtn}
-      <div class="mnav">
-        <button class="nb" onclick="VM()">‹</button>
-        <span class="mnav-title">${MONATE[m]} ${y}</span>
-        <button class="nb" onclick="NM()">›</button>
-      </div>
-      <div class="cal-head">${WOCHENTAGE.map(d=>`<span>${d}</span>`).join('')}</div>
-      <div class="cal-grid">${cells}</div>
-      <div class="legend">
-        <div class="leg"><div class="leg-dot" style="background:rgba(224,123,57,0.35)"></div>Veranstaltung</div>
-        <div class="leg"><div class="leg-dot" style="background:rgba(46,125,82,0.4);border-radius:50%"></div>Mitglied eingetragen</div>
-      </div>
-    </div>
-    <div class="cl" style="padding:0 2px 8px">Kommende Veranstaltungen</div>
-    ${evList}
-  `;
-}
-
-// ── GEBURTSTAGS-TAB ───────────────────────────────
-function baueGeburtstage(){
-  const y=S.bjahr,m=S.bmonat;
-  const dim=dimF(y,m),off=wochentagOffset(y,m);
-  let cells='';
-  for(let i=0;i<off;i++) cells+=`<div class="bk-cell emp"></div>`;
-  for(let d=1;d<=dim;d++){
-    const heute=istHeute(y,m,d);
-    const bds=geburtstageAmTag(m,d);
-    cells+=`<div class="bk-cell${heute?' tod':''}${bds.length?' hasbday':''}" onclick="GBO(${m},${d})">
-      <span class="day-num" style="color:${bds.length?'#9b1c10':'var(--muted)'};">${d}</span>
-      ${bds.map(b=>`<div class="bk-name">🎂 ${b.name}</div>`).join('')}
-    </div>`;
-  }
-
-  const sortiert=[...S.birthdays].map((b,i)=>({...b,i,tage:tageNoch(b)})).sort((a,b)=>a.tage-b.tage);
-  const rows=sortiert.slice(0,12).map(b=>{
-    const alter=alterWird(b);
-    return`<div class="bday-row">
-      <div class="bday-av">${ini(b.name)}</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:700">${b.name}</div>
-        <div style="font-size:11px;color:var(--muted)">${b.tag}.${b.monat}.${b.jahr?' '+b.jahr:''} ${alter?`· wird ${alter}`:''}${b.tage===0?' 🎉':''}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-        <div class="bday-in">${b.tage===0?'Heute 🎉':`in ${b.tage}d`}</div>
-        <button onclick="GB(${b.i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px">✕</button>
-      </div>
-    </div>`;
-  }).join('');
-
-  return`
-    <div class="card">
-      <div class="cl">Geburtstagskalender</div>
-      <div class="mnav">
-        <button class="nb" onclick="VBM()">‹</button>
-        <span class="mnav-title">${MONATE[m]} ${y}</span>
-        <button class="nb" onclick="NBM()">›</button>
-      </div>
-      <div class="cal-head">${WOCHENTAGE.map(d=>`<span>${d}</span>`).join('')}</div>
-      <div class="bk-grid">${cells}</div>
-    </div>
-    <button onclick="S.modal={type:'geburtstagHinzu'};render()" class="btn btn-primary" style="margin-bottom:14px">🎂 Geburtstag eintragen</button>
-    <div class="card">
-      <div class="cl">Nächste Geburtstage</div>
-      ${sortiert.length?rows:`<div class="empty"><span class="em">🎂</span>Noch keine Geburtstage</div>`}
-    </div>
-  `;
-}
-
-// ── TEAM TAB ──────────────────────────────────────
-function baueTeam(){
-  const chips=S.members.map(m=>`<div class="chip">
-    <div style="width:9px;height:9px;border-radius:50%;background:${m.color}"></div>
-    ${m.name}
-    <button class="rm" onclick="ME('${m.name}')">×</button>
-  </div>`).join('');
-  const stats=S.members.map(m=>{
-    const cnt=Object.values(S.shifts).flat().filter(x=>x.name===m.name).length;
-    return`<div class="stat-row">
-      <div style="width:10px;height:10px;border-radius:50%;background:${m.color};flex-shrink:0"></div>
-      <span style="flex:1;font-weight:700">${m.name}</span>
-      <span style="font-size:12px;color:var(--muted)">${cnt} Einträge</span>
-    </div>`;
-  }).join('');
-  return`
-    <div class="card">
-      <div class="cl">Mitglieder</div>
-      <div class="chip-list">${chips}</div>
-      <div class="add-row">
-        <input id="nmI" type="text" placeholder="Name hinzufügen …" value="${S.newM}" oninput="S.newM=this.value"/>
-        <button onclick="mitgliedHinzufuegen()">+</button>
-      </div>
-    </div>
-    <div class="card"><div class="cl">Statistik</div>${stats||'<div class="empty">Keine Mitglieder</div>'}</div>
-  `;
-}
-
-// ── BOTTOM NAV ────────────────────────────────────
-function baueBnav(){return``}
-
-// ══════════════════════════════════════════════════
-// MODALS
-// ══════════════════════════════════════════════════
-function baueModal(){
-  const t=S.modal.type;
-
-  // ── Admin Login ──
-  if(t==='adminLogin') return`<div class="ov"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-title">🔑 Admin anmelden</div>
-    <div class="sheet-sub">Nur für den Kalender-Verwalter</div>
-    <div class="form-group">
-      <label class="form-label">Admin-Passwort</label>
-      <input class="form-input" type="password" id="adminPwInput" placeholder="Passwort eingeben …"/>
-    </div>
-    <button class="btn btn-primary" onclick="adminAnmelden()" style="margin-bottom:8px">Anmelden</button>
-    <button class="btn btn-ghost" onclick="CM()">Abbrechen</button>
-    <div id="admin-err" style="color:var(--red);font-size:12px;font-weight:700;margin-top:8px;text-align:center"></div>
-  </div></div>`;
-
-  // ── Neue / Bearbeiten Veranstaltung ──
-  if(t==='neueVeranstaltung'||t==='bearbeitenVeranstaltung'){
-    const ev=t==='bearbeitenVeranstaltung'?S.events.find(e=>e.id===S.modal.id):null;
-    return`<div class="ov" onclick="CM()"><div class="sheet" onclick="event.stopPropagation()">
-      <div class="sheet-title">${ev?'✏️ Bearbeiten':'📌 Neue Veranstaltung'}</div>
-      <div class="sheet-sub">Nur für Admins</div>
-      <div class="form-group">
-        <label class="form-label">Titel</label>
-        <input class="form-input" id="evTitel" placeholder="z.B. Enduro-Rennen" value="${ev?ev.titel:''}"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Datum</label>
-        <input class="form-input" type="date" id="evDatum" value="${ev?ev.datum:''}"/>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Von</label>
-          <input class="form-input" type="time" id="evVon" value="${ev?ev.vonZeit:'08:00'}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Bis</label>
-          <input class="form-input" type="time" id="evBis" value="${ev?ev.bisZeit:'17:00'}"/>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Beschreibung (optional)</label>
-        <input class="form-input" id="evBeschreibung" placeholder="Kurze Info zur Veranstaltung" value="${ev?ev.beschreibung||'':''}"/>
-      </div>
-      <button class="btn btn-primary" onclick="evSpeichern(${ev?`'${ev.id}'`:'null'})" style="margin-bottom:8px">💾 Speichern</button>
-      ${ev?`<button class="btn btn-danger" onclick="veranstaltungLoeschen('${ev.id}')" style="margin-bottom:8px">🗑️ Löschen</button>`:''}
-      <button class="btn btn-ghost" onclick="CM()">Abbrechen</button>
-    </div></div>`;
-  }
-
-  // ── Tag-Ansicht / Eintragen ──
-  if(t==='tagAnsicht'){
-    const key=S.modal.key;
-    const [y,mo,d]=key.split('-');
-    const evts=eventsAmTag(key);
-    const slist=shiftsAmTag(key);
-    const tagNr=parseInt(d);
-    const monatNr=parseInt(mo);
-    const wt=new Date(parseInt(y),monatNr-1,tagNr).getDay();
-    const wtName=['So','Mo','Di','Mi','Do','Fr','Sa'][wt];
-    // Speichere aktuelle Daten in globale Vars für Button-Callbacks
-    window._modalKey=key;
-    window._modalEvts=evts;
-
-    let evHtml='';
-    evts.forEach(function(ev){
-      const eid=ev.id;
-      // Zeige Einträge die zu dieser Veranstaltung gehören ODER undefined/leer haben
-      const eintraege=slist.filter(function(x){
-        return x.evtId===eid || x.evtId===undefined || x.evtId==='' || x.evtId==='undefined';
-      });
-      let eHtml='';
-      eintraege.forEach(function(e){
-        const mb=S.members.find(function(x){return x.name===e.name;})||{color:'#888'};
-        eHtml+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(46,125,82,0.07);border:1.5px solid rgba(46,125,82,0.25);margin-bottom:6px">';
-        eHtml+='<div style="width:11px;height:11px;border-radius:50%;background:'+mb.color+';flex-shrink:0"></div>';
-        eHtml+='<div style="flex:1"><div style="font-size:14px;font-weight:700">'+e.name+'</div>';
-        eHtml+='<div style="font-size:12px;color:#2e7d52;font-weight:600">🕐 '+e.von+' – '+e.bis+' Uhr</div></div>';
-        eHtml+='<button onclick="AUSTR(this)" data-eid="'+eid+'" data-nm="'+e.name+'" style="background:none;border:1px solid rgba(192,57,43,0.25);border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;color:#c0392b">Austragen</button>';
-        eHtml+='</div>';
-      });
-      evHtml+='<div style="background:rgba(224,123,57,0.06);border:1px solid rgba(224,123,57,0.25);border-radius:12px;padding:14px;margin-bottom:12px">';
-      evHtml+='<div style="font-size:17px;font-weight:800;margin-bottom:3px">📌 '+ev.titel+'</div>';
-      evHtml+='<div style="font-size:13px;color:var(--muted);margin-bottom:'+(ev.beschreibung?'5px':'12px')+'">🕐 '+ev.vonZeit+' – '+ev.bisZeit+' Uhr</div>';
-      if(ev.beschreibung) evHtml+='<div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">'+ev.beschreibung+'</div>';
-      if(S.isAdmin) evHtml+='<button onclick="BEARB(this)" data-eid="'+eid+'" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);margin-bottom:12px">✏️ Bearbeiten</button>';
-
-      evHtml+='<div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Eingetragen ('+eintraege.length+')</div>';
-      evHtml+=(eHtml||'<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Noch niemand eingetragen</div>');
-      evHtml+='<button onclick="EINTR(this)" data-eid="'+eid+'" data-key="'+key+'" style="width:100%;padding:13px;background:#fff8f2;border:2px dashed rgba(224,123,57,0.5);border-radius:10px;font-size:15px;font-weight:800;color:#e07b39;cursor:pointer;margin-top:6px">+ Ich trage mich ein</button>';
-      evHtml+='</div>';
-    });
-    if(!evts.length) evHtml='<div style="text-align:center;padding:16px 0;color:var(--muted);font-size:13px">Keine Veranstaltung an diesem Tag</div>';
-    const adminBtn=S.isAdmin?'<button onclick="NEUEV(\''+key+'\')" class="btn btn-ghost" style="margin-bottom:8px">'+(evts.length?'+ Weitere Veranstaltung':'+ Veranstaltung erstellen')+'</button>':'';
-    return '<div class="ov"><div class="sheet" onclick="event.stopPropagation()">'+
-      '<div class="sheet-title">'+wtName+', '+tagNr+'. '+MONATE[monatNr-1]+' '+y+'</div>'+
-      '<div class="sheet-sub">'+(evts.length?evts.length+' Veranstaltung'+(evts.length>1?'en':''):'')+'</div>'+
-      evHtml+adminBtn+
-      '<button class="btn btn-ghost" onclick="CM()">Schließen</button>'+
-      '</div></div>';
-  }
-
-  // ── Mitglied-Uhrzeit Popup ──
-  if(t==='zeitEingabe'){
-    const {evId,memberName,key}=S.modal;
-    const ev=evId?S.events.find(e=>e.id===evId):null;
-    const m=S.members.find(x=>x.name===memberName);
-    const rueckKey=ev?ev.datum:(key||'');
-    return`<div class="ov"><div class="sheet" onclick="event.stopPropagation()">
-      <div class="sheet-title" style="color:${m?.color||'#e07b39'}">${memberName}</div>
-      <div class="sheet-sub">${ev?`Uhrzeit für „${ev.titel}" eintragen`:'Uhrzeit eintragen'}</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Von</label>
-          <input class="form-input" type="time" id="mVon" value="${ev?.vonZeit||'08:00'}"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Bis</label>
-          <input class="form-input" type="time" id="mBis" value="${ev?.bisZeit||'17:00'}"/>
-        </div>
-      </div>
-      <button class="btn btn-success" style="margin-bottom:8px;width:100%;padding:14px;font-size:16px" onclick="zeitSpeichernMitKey('${evId||''}','${memberName}','${rueckKey}')">✓ Eintragen</button>
-      <button class="btn btn-ghost" onclick="S.modal={type:'tagAnsicht',key:'${rueckKey}'};render()">Zurück</button>
-    </div></div>`;
-  }
-
-  // ── Mitglied wählen (wer trägt sich ein) ──
-  if(t==='mitgliedWaehlen'){
-    const {evId,key}=S.modal;
-    const slist=S.shifts[key]||[];
-    const bereitsEin=evId
-      ? slist.filter(x=>x.evtId===evId).map(x=>x.name)
-      : slist.map(x=>x.name);
-    const verfuegbar=S.members.filter(m=>!bereitsEin.includes(m.name)&&m.name!=='Admin');
-    let btnHtml='';
-    verfuegbar.forEach(function(m){
-      btnHtml+='<button class="member-btn" onclick="WAEHLE(this)" data-eid="'+(evId||'')+'" data-nm="'+m.name+'" data-key="'+key+'">'+
-        '<div style="width:12px;height:12px;border-radius:50%;background:'+m.color+';flex-shrink:0"></div>'+
-        '<span style="flex:1;text-align:left">'+m.name+'</span>'+
-        '<span style="font-size:18px;color:var(--accent)">→</span>'+
-        '</button>';
-    });
-    const btns=btnHtml;
-    return`<div class="ov"><div class="sheet" onclick="event.stopPropagation()">
-      <div class="sheet-title">Wer bist du?</div>
-      <div class="sheet-sub">Wähle deinen Namen aus der Liste</div>
-      ${verfuegbar.length?btns:'<div class="empty"><span class="em">✅</span>Alle Mitglieder sind bereits eingetragen!</div>'}
-      <hr class="sheet-divider"/>
-      <button class="btn btn-ghost" onclick="S.modal={type:'tagAnsicht',key:'${key}'};render()">Zurück</button>
-    </div></div>`;
-  }
-
-  // ── JSONBin Setup ──
-  if(t==='binSetup') return '<div class="ov"><div class="sheet" onclick="event.stopPropagation()">'+
-    '<div class="sheet-title">☁️ Cloud-Sync einrichten</div>'+
-    '<div class="sheet-sub" style="margin-bottom:16px">Damit alle Geräte dieselben Daten sehen, brauchen wir einen kostenlosen JSONBin-Account.</div>'+
-    '<div style="background:#fff3e8;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.6;color:#7a3800">'+
-    '<b>Einmalige Einrichtung (2 Minuten):</b><br>'+
-    '1. Gehe zu <b>jsonbin.io</b> → kostenlos registrieren<br>'+
-    '2. Klicke auf „+ New Bin" → Name: „enduro"<br>'+
-    '3. Kopiere die <b>Bin ID</b> (steht oben nach dem Erstellen)<br>'+
-    '4. Gehe zu „API Keys" → kopiere deinen <b>Master Key</b>'+
-    '</div>'+
-    '<div class="form-group"><label class="form-label">Bin ID</label>'+
-    '<input class="form-input" id="binIdInput" placeholder="z.B. 6634abc1e41b4d34e4123456" style="font-size:12px"/></div>'+
-    '<div class="form-group"><label class="form-label">Master Key (API Key)</label>'+
-    '<input class="form-input" id="apiKeyInput" placeholder="$2a$10$..." type="password" style="font-size:12px"/></div>'+
-    '<button class="btn btn-primary" onclick="BINSETUP()" style="margin-bottom:8px">✓ Verbinden</button>'+
-    '<button class="btn btn-ghost" onclick="CM()">Später (nur lokal)</button>'+
-    '</div></div>';
-
-  // ── Geburtstag Hinzufügen ──
-  if(t==='geburtstagHinzu') return`<div class="ov" onclick="CM()"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-title">🎂 Geburtstag eintragen</div>
-    <div class="sheet-sub">Name und Geburtsdatum</div>
-    <div class="form-group">
-      <label class="form-label">Name</label>
-      <input class="form-input" id="bdN" type="text" placeholder="Name der Person" value="${S.newBdName}" oninput="S.newBdName=this.value"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Geburtsdatum</label>
-      <input class="form-input" id="bdD" type="date" value="${S.newBdDate}" oninput="S.newBdDate=this.value"/>
-    </div>
-    <button class="btn btn-primary" onclick="geburtstagsHinzufuegen()" style="margin-bottom:8px">Speichern</button>
-    <button class="btn btn-ghost" onclick="CM()">Abbrechen</button>
-  </div></div>`;
-
-  return '';
-}
-
-// ══════════════════════════════════════════════════
-// GLOBALE FUNKTIONEN
-// ══════════════════════════════════════════════════
-window.ST=t=>{S.tab=t;render()};
-window.VM=()=>{const d=new Date(S.jahr,S.monat-1);S.jahr=d.getFullYear();S.monat=d.getMonth();render()};
-window.NM=()=>{const d=new Date(S.jahr,S.monat+1);S.jahr=d.getFullYear();S.monat=d.getMonth();render()};
-window.VBM=()=>{const d=new Date(S.bjahr,S.bmonat-1);S.bjahr=d.getFullYear();S.bmonat=d.getMonth();render()};
-window.NBM=()=>{const d=new Date(S.bjahr,S.bmonat+1);S.bjahr=d.getFullYear();S.bmonat=d.getMonth();render()};
-window.CM=()=>{S.modal=null;render()};
-window.TK=key=>{S.modal={type:'tagAnsicht',key};render()};
-window.EO=id=>{const ev=S.events.find(e=>e.id===id);if(ev){S.modal={type:'tagAnsicht',key:ev.datum};render()}};
-window.ME=n=>{if(confirm(`${n} entfernen?`))mitgliedEntfernen(n)};
-window.ME_EV=(evId,memberName)=>{
-  const ev=S.events.find(e=>e.id===evId);
-  if(!ev)return;
-  const eintrag=(S.shifts[ev.datum]||[]).find(x=>x.name===memberName&&x.evtId===evId);
-  if(eintrag){
-    // Austragen
-    mitgliedEintragen(evId,S.members.find(m=>m.name===memberName)||{name:memberName,color:'#888'},eintrag.von,eintrag.bis);
-  } else {
-    // Uhrzeit abfragen
-    S.modal={type:'zeitEingabe',evId,memberName};render();
-  }
-};
-// ── Button-Callbacks für tagAnsicht ──
-window.WAEHLE=function(btn){
-  const eid=btn.getAttribute('data-eid');
-  const nm=btn.getAttribute('data-nm');
-  const key=btn.getAttribute('data-key');
-  S.modal={type:'zeitEingabe',evId:eid,memberName:nm,key:key};
-  render();
-};
-window.EINTR=function(btn){
-  const eid=btn.getAttribute('data-eid');
-  const key=btn.getAttribute('data-key');
-  S.modal={type:'mitgliedWaehlen',evId:eid||'',key:key};
-  render();
-};
-window.AUSTR=function(btn){
-  const eid=btn.getAttribute('data-eid');
-  const nm=btn.getAttribute('data-nm');
-  const ev=S.events.find(e=>e.id===eid);
-  if(!ev)return;
-  const k=ev.datum;
-  S.shifts[k]=(S.shifts[k]||[]).filter(x=>!(x.name===nm&&x.evtId===eid));
-  save();syncUp();
-  S.modal={type:'tagAnsicht',key:k};render();
-};
-window.BEARB=function(btn){
-  const eid=btn.getAttribute('data-eid');
-  S.modal={type:'bearbeitenVeranstaltung',id:eid};render();
-};
-window.NEUEV=function(key){
-  S.modal={type:'neueVeranstaltung'};render();
-  setTimeout(()=>{const di=document.getElementById('evDatum');if(di)di.value=key;},50);
-};
-
-// ZE = Zeiterfassung öffnen (mit key für Rücknavigation)
-window.ZE=(evId,memberName,key)=>{
-  S.modal={type:'zeitEingabe',evId:evId||'',memberName,key};render();
-};
-
-window.zeitSpeichernMitKey=(evId,memberName,key)=>{
-  const von=document.getElementById('mVon')?.value||'08:00';
-  const bis=document.getElementById('mBis')?.value||'17:00';
-  const m=S.members.find(x=>x.name===memberName)||{name:memberName,color:'#888'};
-  if(!key){alert('Fehler: kein Datum');return;}
-  if(!S.shifts[key])S.shifts[key]=[];
-  // Bestimme die richtige evtId - nimm erste Veranstaltung des Tages wenn keine angegeben
-  const zielEvId=evId||( S.events.find(function(e){return e.datum===key;})||{} ).id||'';
-  S.shifts[key]=S.shifts[key].filter(x=>!(x.name===memberName));
-  S.shifts[key].push({name:m.name,color:m.color,von:von,bis:bis,evtId:zielEvId});
-  save();
-  syncUp(); // Hintergrund-Sync, kein render()
-  S.modal={type:'tagAnsicht',key:key};
-  render(); // Modal neu aufbauen mit frischen Daten
-};
-
-window.zeitSpeichern=(evId,memberName)=>{
-  // Werte direkt aus DOM lesen bevor render() alles löscht
-  const von=document.getElementById('mVon')?.value||'08:00';
-  const bis=document.getElementById('mBis')?.value||'17:00';
-  const m=S.members.find(x=>x.name===memberName)||{name:memberName,color:'#888'};
-  const ev=S.events.find(e=>e.id===evId);
-  if(!ev){alert('Fehler: Veranstaltung nicht gefunden');return;}
-  const key=ev.datum;
-  if(!S.shifts[key])S.shifts[key]=[];
-  // Alten Eintrag entfernen falls vorhanden
-  S.shifts[key]=S.shifts[key].filter(x=>!(x.name===memberName&&x.evtId===evId));
-  // Neuen Eintrag hinzufügen
-  S.shifts[key].push({name:m.name,color:m.color,von:von,bis:bis,evtId:evId});
-  save();
-  syncUp();
-  S.modal={type:'tagAnsicht',key:key};
-  render();
-};
-window.GBO=(m,d)=>{const bds=geburtstageAmTag(m,d);if(bds.length){S.modal={type:'geburtstagHinzu'};render()}};
-window.GB=i=>geburtstagsLoeschen(i);
-window.mitgliedHinzufuegen=mitgliedHinzufuegen;
-window.geburtstagsHinzufuegen=geburtstagsHinzufuegen;
-window.veranstaltungLoeschen=veranstaltungLoeschen;
-window.syncDown=syncDown;
-window.showBinSetup=function(){S.modal={type:'binSetup'};render();};
-window.BINSETUP=async function(){
-  const bid=document.getElementById('binIdInput')?.value?.trim();
-  const key=document.getElementById('apiKeyInput')?.value?.trim();
-  if(!bid||!key){alert('Bitte beide Felder ausfüllen!');return;}
-  S.binId=bid; S.apiKey=key;
-  localStorage.setItem('em_binId',bid);
-  localStorage.setItem('em_apiKey',key);
-  S.modal=null;
-  // Erst hochladen dann anzeigen
-  await syncUp();
-  render();
-  alert('✅ Cloud-Sync aktiv! Teile die App-URL mit deinen Mitgliedern - alle sehen jetzt dieselben Daten.');
-};
-window.neueVeranstaltungAmTag=key=>{S.modal={type:'neueVeranstaltung'};render();setTimeout(()=>{const di=document.getElementById('evDatum');if(di)di.value=key;},50)};
-window.adminAnmelden=()=>{
-  const pw=document.getElementById('adminPwInput')?.value?.trim();
-  if(pw===ADMIN_PW){
-    S.isAdmin=true;save();S.modal=null;render();
-  } else {
-    const el=document.getElementById('admin-err');
-    if(el){el.textContent='Falsches Passwort – bitte nochmal versuchen';}
-  }
-};
-window.adminAbmelden=()=>{S.isAdmin=false;save();render()};
-window.evSpeichern=(id)=>{
-  const titel=document.getElementById('evTitel')?.value?.trim();
-  const datum=document.getElementById('evDatum')?.value;
-  const von=document.getElementById('evVon')?.value;
-  const bis=document.getElementById('evBis')?.value;
-  const beschreibung=document.getElementById('evBeschreibung')?.value?.trim();
-  if(!titel||!datum){alert('Bitte Titel und Datum angeben!');return;}
-  veranstaltungSpeichern({id:id||undefined,titel,datum,vonZeit:von,bisZeit:bis,beschreibung});
-};
-
-function bind(){
-  const ni=document.getElementById('nmI');
-  if(ni) ni.addEventListener('keydown',e=>{if(e.key==='Enter')mitgliedHinzufuegen()});
-  const ai=document.getElementById('adminPwInput');
-  if(ai) ai.addEventListener('keydown',e=>{if(e.key==='Enter')window.adminAnmelden()});
-}
-
-// ══════════════════════════════════════════════════
-// PIN
-// ══════════════════════════════════════════════════
-let pinEntry='';
-function checkPin(){
-  const ps=document.getElementById('pin-screen');if(!ps)return;
-  const ok=localStorage.getItem('pin_ok');
-  const ts=parseInt(localStorage.getItem('pin_ts')||'0');
-  if(ok==='1'&&Date.now()-ts<86400000){ps.style.display='none';return;}
-  ps.style.display='flex';
-}
-function PK(d){
-  pinEntry+=d;updatePunkte();
-  if(pinEntry.length===PIN_CODE.length){
-    if(pinEntry===PIN_CODE){
-      localStorage.setItem('pin_ok','1');localStorage.setItem('pin_ts',Date.now().toString());
-      document.getElementById('pin-screen').style.display='none';
-      document.getElementById('pin-error').textContent='';
-      render();
-      syncDown();
+function PT(d){
+  _p+=d;_upd();
+  if(_p.length===5){
+    if(_p===PIN){
+      localStorage.setItem('pin_ok','1');
+      localStorage.setItem('pin_ts',Date.now().toString());
+      document.getElementById('pin').style.display='none';
+      document.getElementById('wrap').style.display='block';
+      zeige();
+      runter().then(function(){zeige();});
     } else {
-      document.querySelectorAll('.pin-dot').forEach(el=>el.classList.add('error'));
-      document.getElementById('pin-error').textContent='Falscher PIN – bitte nochmal versuchen';
-      setTimeout(()=>{pinEntry='';updatePunkte();document.querySelectorAll('.pin-dot').forEach(el=>el.classList.remove('error'));document.getElementById('pin-error').textContent='';},900);
+      for(var i=0;i<5;i++){var d2=document.getElementById('dot'+i);if(d2)d2.className='pin-dot err';}
+      document.getElementById('pin-err').textContent='Falscher PIN';
+      setTimeout(function(){_p='';_upd();document.getElementById('pin-err').textContent='';},900);
     }
   }
 }
-function PD(){if(pinEntry.length>0){pinEntry=pinEntry.slice(0,-1);updatePunkte();}}
-function updatePunkte(){for(let i=0;i<5;i++){const d=document.getElementById('pd'+i);if(d)d.classList.toggle('filled',i<pinEntry.length);}}
-window.PK=PK;window.PD=PD;
+function PD(){if(_p.length>0){_p=_p.slice(0,-1);_upd();}}
 
-// ══════════════════════════════════════════════════
-// START
-// ══════════════════════════════════════════════════
-// ── Globaler Click-Handler für data-action Buttons ──
-document.addEventListener('click', function(e){
-  // PIN-Screen Klicks ignorieren
-  if(e.target.closest('#pin-screen'))return;
-  const btn=e.target.closest('[data-action]');
-  if(!btn)return;
-  const action=btn.dataset.action;
-  const evId=btn.dataset.evid||'';
-  const name=btn.dataset.name||'';
-  const key=btn.dataset.key||'';
-
-  if(action==='eintragen'){
-    e.stopPropagation();
-    S.modal={type:'mitgliedWaehlen',evId:evId,key:key};
-    render();
+// Beim Laden prüfen ob PIN noch gültig
+(function(){
+  var ok=localStorage.getItem('pin_ok')==='1';
+  var ts=parseInt(localStorage.getItem('pin_ts')||'0');
+  if(ok&&Date.now()-ts<86400000){
+    document.getElementById('pin').style.display='none';
+    document.getElementById('wrap').style.display='block';
+    zeige();
+    runter().then(function(){zeige();});
   }
-  if(action==='waehle'){
-    e.stopPropagation();
-    S.modal={type:'zeitEingabe',evId:evId,memberName:name,key:key};
-    render();
-  }
-  if(action==='austragen'){
-    e.stopPropagation();
-    const ev=S.events.find(e=>e.id===evId);
-    if(!ev)return;
-    const k=ev.datum;
-    S.shifts[k]=(S.shifts[k]||[]).filter(x=>!(x.name===name&&x.evtId===evId));
-    save();syncUp();
-    S.modal={type:'tagAnsicht',key:k};render();
-  }
-});
+})();
 
-if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
-// Credentials laden
-S.binId=localStorage.getItem('em_binId')||DEFAULT_BIN_ID;
-S.apiKey=localStorage.getItem('em_apiKey')||DEFAULT_API_KEY;
-localStorage.setItem('em_binId',S.binId);
-localStorage.setItem('em_apiKey',S.apiKey);
-
-// PIN zuerst prüfen - erst danach sync und render
-const pinOk=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
-if(pinOk){
-  document.getElementById('pin-screen').style.display='none';
-  syncDown().then(()=>render());
-} else {
-  document.getElementById('pin-screen').style.display='flex';
-  // Daten im Hintergrund laden aber PIN-Screen nicht entfernen
-  syncDown();
+// ─── MODAL ────────────────────────────────────────
+function openModal(html){
+  document.getElementById('modal-sheet').innerHTML=html;
+  document.getElementById('modal').style.display='flex';
 }
-// Alle 8 Sek Echtzeit-Update via JSONBin
-setInterval(async ()=>{
-  const pinOk=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
-  if(!pinOk||!S.binId)return;
-  try{
-    const res=await fetch('https://api.jsonbin.io/v3/b/'+S.binId+'/latest',{headers:{'X-Master-Key':S.apiKey}});
-    if(!res.ok)return;
-    const json=await res.json();
-    const d=json.record;
-    const vorher=JSON.stringify({sh:S.shifts,ev:S.events});
-    if(d.shifts) S.shifts=d.shifts;
-    if(d.events) S.events=d.events;
-    if(d.members) S.members=d.members;
-    const nachher=JSON.stringify({sh:S.shifts,ev:S.events});
-    if(vorher!==nachher){save();render();}
-  }catch(e){}
+function closeModal(){
+  document.getElementById('modal').style.display='none';
+  document.getElementById('modal-sheet').innerHTML='';
+}
+
+// ─── RENDER ───────────────────────────────────────
+function zeige(){
+  // Tabs
+  var tabs=['kal','geb','team'];
+  var labels=['📅 Kalender','🎂 Geburtstage','👥 Team'];
+  var th='';
+  for(var i=0;i<tabs.length;i++){
+    th+='<button class="tab'+(S.tab===tabs[i]?' on':'')+'" onclick="ST(\''+tabs[i]+'\')">'+labels[i]+'</button>';
+  }
+  document.getElementById('tabs').innerHTML=th;
+
+  // Content
+  var c='';
+  if(S.tab==='kal') c=zeigeKal();
+  else if(S.tab==='geb') c=zeigeGeb();
+  else if(S.tab==='team') c=zeigeTeam();
+  document.getElementById('content').innerHTML=c;
+}
+
+// ─── KALENDER TAB ─────────────────────────────────
+function zeigeKal(){
+  var y=S.jahr, m=S.monat;
+  var d=dim(y,m), o=off(y,m);
+  var cells='';
+  for(var i=0;i<o;i++) cells+='<div class="cal-cell emp"></div>';
+  for(var dd=1;dd<=d;dd++){
+    var key=dk(y,m,dd);
+    var evts=evAmTag(key);
+    var sh=shAmTag(key);
+    var cls='cal-cell'+(istH(y,m,dd)?' tod':'')+(evts.length?' hev':'')+(sh.length?' hsh':'');
+    var inner='<span class="day-n">'+dd+'</span>';
+    for(var e=0;e<evts.length&&e<2;e++) inner+='<div class="ev-lbl">📌 '+evts[e].titel+'</div>';
+    // Zeige einzigartige Namen
+    var namen=[];
+    for(var s=0;s<sh.length;s++){if(namen.indexOf(sh[s].name)<0)namen.push(sh[s].name);}
+    for(var n=0;n<namen.length&&n<2;n++){
+      var mb=getMember(namen[n]);
+      inner+='<div class="sh-lbl" style="background:'+mb.color+'22;color:'+mb.color+'">'+namen[n]+'</div>';
+    }
+    cells+='<div class="'+cls+'" onclick="tagOeffnen(\''+key+'\')">'+inner+'</div>';
+  }
+
+  // Sync status
+  var sb='<div class="sbar"><div class="sdot"></div><span>'+
+    (S.lastSync?'Stand: '+S.lastSync:'Lokal')+'</span>'+
+    '<span style="margin-left:auto;cursor:pointer;color:#e07b39;font-weight:700" onclick="syncNeu()">↻</span></div>';
+
+  // Admin button
+  var ab=S.isAdmin
+    ?'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div class="admin-badge">🔑 Admin</div><button onclick="adminAb()" style="background:none;border:none;color:rgba(100,55,10,.5);cursor:pointer;font-size:12px;font-weight:700">Abmelden</button></div>'+
+      '<button class="btn-pri" onclick="neueVeranstaltung()">+ Veranstaltung erstellen</button>'
+    :'<button onclick="adminLogin()" style="width:100%;padding:8px;background:none;border:1px solid rgba(180,100,30,.15);border-radius:9px;color:rgba(100,55,10,.5);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px">🔑 Als Admin anmelden</button>';
+
+  // Kommende Veranstaltungen
+  var hkey=heute();
+  var komm=S.events.filter(function(e){return e.datum>=hkey;}).slice(0,8);
+  var evList='';
+  if(komm.length===0){
+    evList='<div class="empty">Noch keine Veranstaltungen geplant</div>';
+  } else {
+    for(var k=0;k<komm.length;k++){
+      var ev=komm[k];
+      var parts=ev.datum.split('-');
+      var sh2=shAmTag(ev.datum).filter(function(x){return x.evId===ev.id;});
+      var badges='';
+      for(var b=0;b<sh2.length;b++){
+        var mb2=getMember(sh2[b].name);
+        badges+='<span class="up-badge" style="background:'+mb2.color+'18;border:1px solid '+mb2.color+'44;color:'+mb2.color+'">'+sh2[b].name+'</span>';
+      }
+      evList+='<div class="up-row" onclick="tagOeffnen(\''+ev.datum+'\')">'+
+        '<div class="up-top">'+
+        '<div class="up-dbox"><div class="up-dd">'+parts[2]+'</div><div class="up-dm">'+MONATE_K[parseInt(parts[1])-1]+'</div></div>'+
+        '<div><div class="up-title">'+ev.titel+'</div><div class="up-time">🕐 '+ev.von+' – '+ev.bis+' Uhr</div>'+
+        (ev.beschreibung?'<div style="font-size:11px;color:rgba(100,55,10,.5);margin-top:2px">'+ev.beschreibung+'</div>':'')+
+        '</div></div>'+
+        (badges?'<div class="up-badges">'+badges+'</div>':'')+
+        '</div>';
+    }
+  }
+
+  // Legende
+  var leg='<div class="legend">';
+  leg+='<div class="leg"><div style="width:8px;height:8px;border-radius:2px;background:rgba(224,123,57,.35)"></div>Veranstaltung</div>';
+  for(var mm=0;mm<S.members.length;mm++){
+    leg+='<div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:'+S.members[mm].color+'"></div>'+S.members[mm].name+'</div>';
+  }
+  leg+='</div>';
+
+  return '<div class="card">'+sb+ab+
+    '<div class="mnav">'+
+    '<button class="mnav-btn" onclick="PM()">‹</button>'+
+    '<span class="mnav-title">'+MONATE[m]+' '+y+'</span>'+
+    '<button class="mnav-btn" onclick="NM()">›</button>'+
+    '</div>'+
+    '<div class="cal-head"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>'+
+    '<div class="cal-grid">'+cells+'</div>'+leg+
+    '</div>'+
+    '<div class="card-lbl" style="padding:0 2px 8px">Kommende Veranstaltungen</div>'+evList;
+}
+
+// ─── TAG ÖFFNEN ───────────────────────────────────
+function tagOeffnen(key){
+  var parts=key.split('-');
+  var y=parseInt(parts[0]),m=parseInt(parts[1]),d=parseInt(parts[2]);
+  var wt=new Date(y,m-1,d).getDay();
+  var wtn=['So','Mo','Di','Mi','Do','Fr','Sa'][wt];
+  var evts=evAmTag(key);
+  var sh=shAmTag(key);
+
+  var html='<div class="sh-title">'+wtn+', '+d+'. '+MONATE[m-1]+' '+y+'</div>';
+  html+='<div class="sh-sub">'+(evts.length?evts.length+' Veranstaltung'+(evts.length>1?'en':''):'Normaler Tag')+'</div>';
+
+  // Veranstaltungen
+  for(var i=0;i<evts.length;i++){
+    var ev=evts[i];
+    var evSh=sh.filter(function(x){return x.evId===ev.id;});
+    html+='<div style="background:rgba(224,123,57,.06);border:1px solid rgba(224,123,57,.25);border-radius:12px;padding:14px;margin-bottom:12px">';
+    html+='<div style="font-size:17px;font-weight:800;margin-bottom:3px">📌 '+ev.titel+'</div>';
+    html+='<div style="font-size:13px;color:rgba(100,55,10,.55);margin-bottom:'+(ev.beschreibung?'5px':'12px')+'">🕐 '+ev.von+' – '+ev.bis+' Uhr</div>';
+    if(ev.beschreibung) html+='<div style="font-size:12px;color:rgba(100,55,10,.5);margin-bottom:12px;line-height:1.5">'+ev.beschreibung+'</div>';
+    if(S.isAdmin) html+='<button onclick="evBearbeiten(\''+ev.id+'\')" style="background:none;border:1px solid rgba(180,100,30,.15);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:rgba(100,55,10,.5);margin-bottom:12px">✏️ Bearbeiten</button>';
+    html+='<div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(100,55,10,.45);margin-bottom:8px">Eingetragen ('+evSh.length+')</div>';
+    // Eingetragene Mitglieder anzeigen
+    if(evSh.length===0){
+      html+='<div style="font-size:13px;color:rgba(100,55,10,.45);margin-bottom:10px">Noch niemand eingetragen</div>';
+    } else {
+      for(var s=0;s<evSh.length;s++){
+        var e2=evSh[s];
+        var mb=getMember(e2.name);
+        html+='<div class="m-row">'+
+          '<div class="m-dot" style="background:'+mb.color+'"></div>'+
+          '<div style="flex:1"><div class="m-name">'+e2.name+'</div>'+
+          '<div class="m-time">🕐 '+e2.von+' – '+e2.bis+' Uhr</div></div>'+
+          '<button class="m-out" onclick="austragen(\''+key+'\',\''+e2.name+'\',\''+ev.id+'\')">Austragen</button>'+
+          '</div>';
+      }
+    }
+    html+='<button class="eintragen-btn" onclick="mitgliedWaehlen(\''+key+'\',\''+ev.id+'\')">+ Ich trage mich ein</button>';
+    html+='</div>';
+  }
+
+  // Abschnitt für normalen Betrieb (immer sichtbar)
+  var ohneEv=sh.filter(function(x){return !x.evId||x.evId===''});
+  html+='<div style="background:rgba(46,125,82,.06);border:1px solid rgba(46,125,82,.2);border-radius:12px;padding:14px;margin-bottom:12px">';
+  html+='<div style="font-size:15px;font-weight:800;margin-bottom:3px">🏛️ Museumsbetrieb</div>';
+  html+='<div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(100,55,10,.45);margin-bottom:8px">Anwesend ('+ohneEv.length+')</div>';
+  if(ohneEv.length===0){
+    html+='<div style="font-size:13px;color:rgba(100,55,10,.45);margin-bottom:10px">Noch niemand eingetragen</div>';
+  } else {
+    for(var s2=0;s2<ohneEv.length;s2++){
+      var e3=ohneEv[s2];
+      var mb3=getMember(e3.name);
+      html+='<div class="m-row">'+
+        '<div class="m-dot" style="background:'+mb3.color+'"></div>'+
+        '<div style="flex:1"><div class="m-name">'+e3.name+'</div>'+
+        '<div class="m-time">🕐 '+e3.von+' – '+e3.bis+' Uhr</div></div>'+
+        '<button class="m-out" onclick="austragen(\''+key+'\',\''+e3.name+'\',\'\')">Austragen</button>'+
+        '</div>';
+    }
+  }
+  html+='<button class="eintragen-btn" onclick="mitgliedWaehlen(\''+key+'\',\'\')">+ Ich trage mich ein</button>';
+  html+='</div>';
+
+  if(S.isAdmin){
+    html+='<button class="btn-gh" onclick="neueVeranstaltungAmTag(\''+key+'\')">+ Veranstaltung an diesem Tag erstellen</button>';
+  }
+  html+='<button class="btn-gh" onclick="closeModal()">Schließen</button>';
+  openModal(html);
+}
+
+// ─── MITGLIED WÄHLEN & EINTRAGEN ──────────────────
+function mitgliedWaehlen(key, evId){
+  var sh=shAmTag(key);
+  var bereitsEin=sh.filter(function(x){return x.evId===(evId||'');}).map(function(x){return x.name;});
+  var verfuegbar=S.members.filter(function(m){return bereitsEin.indexOf(m.name)<0;});
+
+  var html='<div class="sh-title">Wer bist du?</div>';
+  html+='<div class="sh-sub">Wähle deinen Namen – dann Uhrzeit eingeben</div>';
+  if(verfuegbar.length===0){
+    html+='<div class="empty">Alle Mitglieder sind bereits eingetragen!</div>';
+  } else {
+    for(var i=0;i<verfuegbar.length;i++){
+      var m=verfuegbar[i];
+      html+='<button class="pick-btn" onclick="zeitEingabe(\''+key+'\',\''+evId+'\',\''+m.name+'\')">'+
+        '<div style="width:12px;height:12px;border-radius:50%;background:'+m.color+'"></div>'+
+        m.name+
+        '<span style="margin-left:auto;color:#e07b39">→</span>'+
+        '</button>';
+    }
+  }
+  html+='<div class="sh-div"></div>';
+  html+='<button class="btn-gh" onclick="tagOeffnen(\''+key+'\')">Zurück</button>';
+  openModal(html);
+}
+
+function zeitEingabe(key, evId, name){
+  var ev=S.events.find(function(e){return e.id===evId;});
+  var vonDef=ev?ev.von:'08:00';
+  var bisDef=ev?ev.bis:'17:00';
+  var mb=getMember(name);
+
+  var html='<div class="sh-title" style="color:'+mb.color+'">'+name+'</div>';
+  html+='<div class="sh-sub">'+(ev?'Für „'+ev.titel+'"':'Museumsbetrieb')+'</div>';
+  html+='<div class="f-row">'+
+    '<div class="f-group"><label class="f-lbl">Von</label><input class="f-inp" type="time" id="zVon" value="'+vonDef+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis</label><input class="f-inp" type="time" id="zBis" value="'+bisDef+'"/></div>'+
+    '</div>';
+  html+='<button class="btn-suc" id="eintrBtn">✓ Eintragen</button>';
+  html+='<button class="btn-gh" onclick="mitgliedWaehlen(\''+key+'\',\''+evId+'\')">Zurück</button>';
+  openModal(html);
+
+  // Button direkt nach dem Rendern verknüpfen
+  document.getElementById('eintrBtn').onclick=function(){
+    var von=document.getElementById('zVon').value||vonDef;
+    var bis=document.getElementById('zBis').value||bisDef;
+    eintragen(key,evId,name,von,bis);
+  };
+}
+
+function eintragen(key,evId,name,von,bis){
+  var mb=getMember(name);
+  if(!S.eintraege[key]) S.eintraege[key]=[];
+  // Alten Eintrag für selbe Person+Event entfernen
+  S.eintraege[key]=S.eintraege[key].filter(function(x){return !(x.name===name&&(x.evId||'')===(evId||''));});
+  S.eintraege[key].push({name:name,color:mb.color,von:von,bis:bis,evId:evId||''});
+  lokal();
+  hoch();
+  tagOeffnen(key); // Modal aktualisieren
+}
+
+function austragen(key,name,evId){
+  if(!S.eintraege[key])return;
+  S.eintraege[key]=S.eintraege[key].filter(function(x){return !(x.name===name&&(x.evId||'')===(evId||''));});
+  lokal();
+  hoch();
+  tagOeffnen(key);
+}
+
+// ─── ADMIN ────────────────────────────────────────
+function adminLogin(){
+  var html='<div class="sh-title">🔑 Admin anmelden</div>'+
+    '<div class="sh-sub">Nur für den Kalender-Verwalter</div>'+
+    '<div class="f-group"><label class="f-lbl">Passwort</label><input class="f-inp" type="password" id="apw" placeholder="Passwort …"/></div>'+
+    '<button class="btn-pri" id="apwBtn">Anmelden</button>'+
+    '<div id="apw-err" style="color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;text-align:center"></div>'+
+    '<button class="btn-gh" onclick="closeModal()">Abbrechen</button>';
+  openModal(html);
+  document.getElementById('apwBtn').onclick=function(){
+    var pw=document.getElementById('apw').value;
+    if(pw===ADMIN_PW){S.isAdmin=true;lokal();closeModal();zeige();}
+    else{document.getElementById('apw-err').textContent='Falsches Passwort';}
+  };
+}
+function adminAb(){S.isAdmin=false;lokal();zeige();}
+
+function neueVeranstaltung(){neueVeranstaltungAmTag(heute());}
+function neueVeranstaltungAmTag(key){
+  var html='<div class="sh-title">📌 Neue Veranstaltung</div>'+
+    '<div class="sh-sub">Nur für Admins</div>'+
+    '<div class="f-group"><label class="f-lbl">Titel</label><input class="f-inp" id="evT" placeholder="z.B. Motorradtreffen"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Datum</label><input class="f-inp" type="date" id="evD" value="'+key+'"/></div>'+
+    '<div class="f-row">'+
+    '<div class="f-group"><label class="f-lbl">Von</label><input class="f-inp" type="time" id="evV" value="09:00"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis</label><input class="f-inp" type="time" id="evB" value="17:00"/></div>'+
+    '</div>'+
+    '<div class="f-group"><label class="f-lbl">Beschreibung (optional)</label><input class="f-inp" id="evBe" placeholder="Kurze Info…"/></div>'+
+    '<button class="btn-pri" id="evSvBtn">💾 Speichern</button>'+
+    '<button class="btn-gh" onclick="closeModal()">Abbrechen</button>';
+  openModal(html);
+  document.getElementById('evSvBtn').onclick=function(){
+    var t=document.getElementById('evT').value.trim();
+    var d=document.getElementById('evD').value;
+    var v=document.getElementById('evV').value;
+    var b=document.getElementById('evB').value;
+    var be=document.getElementById('evBe').value.trim();
+    if(!t||!d){alert('Bitte Titel und Datum angeben!');return;}
+    S.events.push({id:uid(),titel:t,datum:d,von:v,bis:b,beschreibung:be});
+    S.events.sort(function(a,b2){return a.datum.localeCompare(b2.datum);});
+    lokal();hoch();closeModal();zeige();
+  };
+}
+
+function evBearbeiten(evId){
+  var ev=S.events.find(function(e){return e.id===evId;});
+  if(!ev)return;
+  var html='<div class="sh-title">✏️ Veranstaltung bearbeiten</div>'+
+    '<div class="f-group"><label class="f-lbl">Titel</label><input class="f-inp" id="evT" value="'+ev.titel+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Datum</label><input class="f-inp" type="date" id="evD" value="'+ev.datum+'"/></div>'+
+    '<div class="f-row">'+
+    '<div class="f-group"><label class="f-lbl">Von</label><input class="f-inp" type="time" id="evV" value="'+ev.von+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis</label><input class="f-inp" type="time" id="evB" value="'+ev.bis+'"/></div>'+
+    '</div>'+
+    '<div class="f-group"><label class="f-lbl">Beschreibung</label><input class="f-inp" id="evBe" value="'+(ev.beschreibung||'')+'"/></div>'+
+    '<button class="btn-pri" id="evSvBtn">💾 Speichern</button>'+
+    '<button class="btn-del" id="evDelBtn">🗑️ Löschen</button>'+
+    '<button class="btn-gh" onclick="closeModal()">Abbrechen</button>';
+  openModal(html);
+  document.getElementById('evSvBtn').onclick=function(){
+    ev.titel=document.getElementById('evT').value.trim();
+    ev.datum=document.getElementById('evD').value;
+    ev.von=document.getElementById('evV').value;
+    ev.bis=document.getElementById('evB').value;
+    ev.beschreibung=document.getElementById('evBe').value.trim();
+    lokal();hoch();closeModal();zeige();
+  };
+  document.getElementById('evDelBtn').onclick=function(){
+    if(!confirm('Veranstaltung wirklich löschen?'))return;
+    S.events=S.events.filter(function(e){return e.id!==evId;});
+    lokal();hoch();closeModal();zeige();
+  };
+}
+
+// ─── GEBURTSTAGE ──────────────────────────────────
+function zeigeGeb(){
+  var y=S.bjahr, m=S.bmonat, d=dim(y,m), o=off(y,m);
+  var cells='';
+  for(var i=0;i<o;i++) cells+='<div class="bk-cell" style="background:transparent;border-color:transparent"></div>';
+  for(var dd=1;dd<=d;dd++){
+    var bds=bdAmTag(m,dd);
+    var cls='bk-cell'+(bds.length?' hasbday':'');
+    var inn='<span class="day-n" style="color:'+(bds.length?'#9b1c10':'rgba(100,55,10,.4)')+'">'+dd+'</span>';
+    for(var b=0;b<bds.length;b++) inn+='<div class="bkn">🎂 '+bds[b].name+'</div>';
+    cells+='<div class="'+cls+'">'+inn+'</div>';
+  }
+
+  var sortiert=S.birthdays.slice().map(function(b,i){return Object.assign({},b,{idx:i,tage:tageNoch(b)});});
+  sortiert.sort(function(a,b){return a.tage-b.tage;});
+  var rows='';
+  for(var i=0;i<Math.min(sortiert.length,12);i++){
+    var b=sortiert[i];
+    rows+='<div class="bday-row">'+
+      '<div class="bday-av">'+ini(b.name)+'</div>'+
+      '<div style="flex:1"><div style="font-size:14px;font-weight:700">'+b.name+'</div>'+
+      '<div style="font-size:11px;color:rgba(100,55,10,.5)">'+b.tag+'.'+b.monat+'.'+(b.jahr?' '+b.jahr:'')+
+      (b.tage===0?' 🎉':'')+'</div></div>'+
+      '<div class="bday-in">'+(b.tage===0?'Heute 🎉':'in '+b.tage+'d')+'</div>'+
+      '<button onclick="geburtstagDel('+b.idx+')" style="background:none;border:none;color:rgba(100,55,10,.35);cursor:pointer;font-size:13px;margin-left:6px">✕</button>'+
+      '</div>';
+  }
+
+  return '<div class="card">'+
+    '<div class="card-lbl">Geburtstagskalender</div>'+
+    '<div class="mnav">'+
+    '<button class="mnav-btn" onclick="VBM()">‹</button>'+
+    '<span class="mnav-title">'+MONATE[m]+' '+y+'</span>'+
+    '<button class="mnav-btn" onclick="NBM()">›</button>'+
+    '</div>'+
+    '<div class="cal-head"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>'+
+    '<div class="bk-grid">'+cells+'</div>'+
+    '</div>'+
+    '<button class="btn-pri" onclick="geburtstagHinzu()">🎂 Geburtstag eintragen</button>'+
+    '<div class="card"><div class="card-lbl">Nächste Geburtstage</div>'+
+    (sortiert.length?rows:'<div class="empty">Noch keine Geburtstage eingetragen</div>')+
+    '</div>';
+}
+
+function geburtstagHinzu(){
+  var html='<div class="sh-title">🎂 Geburtstag eintragen</div>'+
+    '<div class="f-group"><label class="f-lbl">Name</label><input class="f-inp" id="bdN" placeholder="Name"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Geburtsdatum</label><input class="f-inp" type="date" id="bdD"/></div>'+
+    '<button class="btn-pri" id="bdSvBtn">Speichern</button>'+
+    '<button class="btn-gh" onclick="closeModal()">Abbrechen</button>';
+  openModal(html);
+  document.getElementById('bdSvBtn').onclick=function(){
+    var n=document.getElementById('bdN').value.trim();
+    var d=document.getElementById('bdD').value;
+    if(!n||!d){alert('Bitte Name und Datum eingeben!');return;}
+    var p=d.split('-');
+    var e={name:n,monat:parseInt(p[1]),tag:parseInt(p[2])};
+    if(parseInt(p[0])>1900)e.jahr=parseInt(p[0]);
+    S.birthdays.push(e);
+    lokal();hoch();closeModal();zeige();
+  };
+}
+function geburtstagDel(i){
+  if(!confirm('Geburtstag löschen?'))return;
+  S.birthdays.splice(i,1);lokal();hoch();zeige();
+}
+
+// ─── TEAM ─────────────────────────────────────────
+function zeigeTeam(){
+  var chips='';
+  for(var i=0;i<S.members.length;i++){
+    var m=S.members[i];
+    chips+='<div class="chip"><div style="width:8px;height:8px;border-radius:50%;background:'+m.color+'"></div>'+m.name+
+      '<button class="chip-x" onclick="memberDel(\''+m.name+'\')">×</button></div>';
+  }
+  var stats='';
+  for(var i=0;i<S.members.length;i++){
+    var m=S.members[i];
+    var cnt=0;
+    for(var k in S.eintraege) cnt+=S.eintraege[k].filter(function(x){return x.name===m.name;}).length;
+    stats+='<div class="stat-row">'+
+      '<div style="width:9px;height:9px;border-radius:50%;background:'+m.color+'"></div>'+
+      '<span style="flex:1;font-weight:700">'+m.name+'</span>'+
+      '<span style="font-size:12px;color:rgba(100,55,10,.5)">'+cnt+' Einträge</span></div>';
+  }
+  return '<div class="card"><div class="card-lbl">Mitglieder</div>'+
+    '<div class="chip-list">'+chips+'</div>'+
+    '<div class="add-row"><input id="nmI" type="text" placeholder="Name hinzufügen …"/><button onclick="memberAdd()">+</button></div>'+
+    '</div>'+
+    '<div class="card"><div class="card-lbl">Statistik</div>'+(stats||'<div class="empty">Keine Mitglieder</div>')+'</div>';
+}
+function memberAdd(){
+  var n=document.getElementById('nmI').value.trim();
+  if(!n||S.members.find(function(m){return m.name===n;}))return;
+  S.members.push({name:n,color:FARBEN[S.members.length%FARBEN.length]});
+  lokal();hoch();zeige();
+}
+function memberDel(name){
+  if(!confirm(name+' entfernen?'))return;
+  S.members=S.members.filter(function(m){return m.name!==name;});
+  for(var k in S.eintraege) S.eintraege[k]=S.eintraege[k].filter(function(x){return x.name!==name;});
+  lokal();hoch();zeige();
+}
+function getMember(name){
+  return S.members.find(function(m){return m.name===name;})||{color:'#888'};
+}
+
+// ─── NAVIGATION ───────────────────────────────────
+function ST(t){S.tab=t;zeige();}
+function PM(){var d=new Date(S.jahr,S.monat-1);S.jahr=d.getFullYear();S.monat=d.getMonth();zeige();}
+function NM(){var d=new Date(S.jahr,S.monat+1);S.jahr=d.getFullYear();S.monat=d.getMonth();zeige();}
+function VBM(){var d=new Date(S.bjahr,S.bmonat-1);S.bjahr=d.getFullYear();S.bmonat=d.getMonth();zeige();}
+function NBM(){var d=new Date(S.bjahr,S.bmonat+1);S.bjahr=d.getFullYear();S.bmonat=d.getMonth();zeige();}
+function syncNeu(){runter().then(function(){zeige();});}
+
+// ─── ECHTZEIT-SYNC (alle 8 Sek) ──────────────────
+setInterval(function(){
+  var ok=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
+  if(!ok)return;
+  runter().then(function(){
+    // Nur neu rendern wenn Modal zu
+    if(document.getElementById('modal').style.display==='none') zeige();
+  });
 },8000);
+
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
 </script>
 </body>
 </html>

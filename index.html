@@ -945,7 +945,8 @@ function PK(d){
       localStorage.setItem('pin_ok','1');localStorage.setItem('pin_ts',Date.now().toString());
       document.getElementById('pin-screen').style.display='none';
       document.getElementById('pin-error').textContent='';
-      syncDown().then(()=>render());
+      render();
+      syncDown();
     } else {
       document.querySelectorAll('.pin-dot').forEach(el=>el.classList.add('error'));
       document.getElementById('pin-error').textContent='Falscher PIN – bitte nochmal versuchen';

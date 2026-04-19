@@ -171,32 +171,59 @@
 <body>
 
 <!-- PIN SCREEN -->
-<div id="pin-screen">
-  <h2>Enduro Museum</h2>
-  <p>Bitte PIN eingeben</p>
-  <div class="pin-dots">
-    <div class="pin-dot" id="pd0"></div>
-    <div class="pin-dot" id="pd1"></div>
-    <div class="pin-dot" id="pd2"></div>
-    <div class="pin-dot" id="pd3"></div>
-    <div class="pin-dot" id="pd4"></div>
+<div id="pin-screen" style="position:fixed;inset:0;background:#fdf6ee;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Nunito,sans-serif">
+  <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;background:linear-gradient(135deg,#e07b39,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px">Enduro Museum</div>
+  <div style="font-size:14px;color:#a06030;margin-bottom:28px">Bitte PIN eingeben</div>
+  <div id="pdots" style="display:flex;gap:14px;margin-bottom:28px"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:260px">
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('1')">1</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('2')">2</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('3')">3</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('4')">4</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('5')">5</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('6')">6</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('7')">7</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('8')">8</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('9')">9</button>
+    <div></div>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#3d1f00;font-family:Syne,sans-serif;font-size:24px;font-weight:800;cursor:pointer" onclick="pinTap('0')">0</button>
+    <button style="height:66px;border-radius:14px;border:1.5px solid rgba(180,100,30,0.15);background:#fff8f2;color:#a06030;font-size:20px;cursor:pointer" onclick="pinDel()">⌫</button>
   </div>
-  <div class="pin-grid">
-    <button class="pin-key" onclick="PK('1')">1</button>
-    <button class="pin-key" onclick="PK('2')">2</button>
-    <button class="pin-key" onclick="PK('3')">3</button>
-    <button class="pin-key" onclick="PK('4')">4</button>
-    <button class="pin-key" onclick="PK('5')">5</button>
-    <button class="pin-key" onclick="PK('6')">6</button>
-    <button class="pin-key" onclick="PK('7')">7</button>
-    <button class="pin-key" onclick="PK('8')">8</button>
-    <button class="pin-key" onclick="PK('9')">9</button>
-    <button class="pin-key empty"></button>
-    <button class="pin-key" onclick="PK('0')">0</button>
-    <button class="pin-key del" onclick="PD()">&#9003;</button>
-  </div>
-  <div id="pin-error"></div>
+  <div id="pin-error" style="color:#c0392b;font-size:13px;font-weight:700;margin-top:16px;min-height:20px"></div>
 </div>
+<script>
+var _pin='';
+function _dots(){
+  var d=document.getElementById('pdots');
+  if(!d)return;
+  d.innerHTML='';
+  for(var i=0;i<5;i++){
+    var s=document.createElement('div');
+    s.style.cssText='width:16px;height:16px;border-radius:50%;border:2px solid rgba(180,100,30,0.2);background:'+(i<_pin.length?'#e07b39':'transparent');
+    d.appendChild(s);
+  }
+}
+function pinTap(d){
+  _pin+=d;_dots();
+  if(_pin.length===5){
+    if(_pin==='09405'){
+      localStorage.setItem('pin_ok','1');
+      localStorage.setItem('pin_ts',Date.now().toString());
+      document.getElementById('pin-screen').style.display='none';
+      render();syncDown();
+    } else {
+      document.getElementById('pin-error').textContent='Falscher PIN';
+      var dots=document.getElementById('pdots').children;
+      for(var i=0;i<dots.length;i++) dots[i].style.background='#c0392b';
+      setTimeout(function(){_pin='';_dots();document.getElementById('pin-error').textContent='';},900);
+    }
+  }
+}
+function pinDel(){if(_pin.length>0){_pin=_pin.slice(0,-1);_dots();}}
+_dots();
+var _pok=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
+if(_pok) document.getElementById('pin-screen').style.display='none';
+</script>
 
 <div id="app"></div>
 

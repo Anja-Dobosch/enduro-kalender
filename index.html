@@ -330,7 +330,7 @@ async function initBin(){
   const savedKey=localStorage.getItem('em_apiKey');
   if(savedId&&savedKey){S.binId=savedId;S.apiKey=savedKey;return;}
   // Zeige Setup-Dialog
-  S.modal={type:'binSetup'};render();
+  // binSetup modal wird bei Bedarf gezeigt
 }
 
 // ══════════════════════════════════════════════════
@@ -481,7 +481,7 @@ function baueKalender(){
   const syncBar='<div class="sbar">'+
     '<div class="sdot"></div>'+
     (S.binId?('<span>☁️ Stand: '+(S.lastSync||'–')+'</span>'):
-    '<span style="color:var(--accent2);cursor:pointer" onclick="S.modal={type:'binSetup'};render()">⚠️ Kein Cloud-Sync – hier tippen um einzurichten</span>')+
+    '<span style="color:var(--accent2);cursor:pointer" onclick="showBinSetup()">⚠️ Kein Cloud-Sync – hier tippen um einzurichten</span>')+
     '<span style="margin-left:auto;cursor:pointer;color:var(--accent);font-weight:700" onclick="syncDown()">↻</span>'+
     '</div>';
 
@@ -913,6 +913,7 @@ window.mitgliedHinzufuegen=mitgliedHinzufuegen;
 window.geburtstagsHinzufuegen=geburtstagsHinzufuegen;
 window.veranstaltungLoeschen=veranstaltungLoeschen;
 window.syncDown=syncDown;
+window.showBinSetup=function(){S.modal={type:'binSetup'};render();};
 window.BINSETUP=async function(){
   const bid=document.getElementById('binIdInput')?.value?.trim();
   const key=document.getElementById('apiKeyInput')?.value?.trim();

@@ -963,6 +963,8 @@ window.PK=PK;window.PD=PD;
 // ══════════════════════════════════════════════════
 // ── Globaler Click-Handler für data-action Buttons ──
 document.addEventListener('click', function(e){
+  // PIN-Screen Klicks ignorieren
+  if(e.target.closest('#pin-screen'))return;
   const btn=e.target.closest('[data-action]');
   if(!btn)return;
   const action=btn.dataset.action;

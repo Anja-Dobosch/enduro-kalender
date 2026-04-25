@@ -193,6 +193,7 @@ const BIN_ID='69e3a735856a68218949ebf2';
 const API_KEY='$2a$10$de41ugq7EutRChiTkZy4oeXF4277osh.7O44kb.a/AqwqeAXw51Ii';
 
 // ─── STATE ────────────────────────────────────────
+var _letzteAenderung=0;
 var S={
   tab:'kal',
   jahr:new Date().getFullYear(), monat:new Date().getMonth(),
@@ -226,6 +227,7 @@ function lokal(){
 
 // ─── CLOUD SYNC ───────────────────────────────────
 async function hoch(){
+  _letzteAenderung=Date.now();
   try{
     await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{
       method:'PUT',
@@ -515,26 +517,55 @@ function mitgliedWaehlen(key, evId){
 
 function zeitEingabe(key, evId, name){
   var ev=S.events.find(function(e){return e.id===evId;});
-  var vonDef=ev?ev.von:'08:00';
-  var bisDef=ev?ev.bis:'17:00';
+  var vonDef=ev?ev.von:'10:00';
+  var bisDef=ev?ev.bis:'18:00';
   var mb=getMember(name);
 
   var html='<div class="sh-title" style="color:'+mb.color+'">'+name+'</div>';
-  html+='<div class="sh-sub">'+(ev?'Für „'+ev.titel+'"':'Museumsbetrieb')+'</div>';
+  html+='<div class="sh-sub">'+(ev?'Für „'+ev.titel+'"':'Museumsbetrieb')+' · Für mehrere Tage: Bis-Datum ändern</div>';
   html+='<div class="f-row">'+
-    '<div class="f-group"><label class="f-lbl">Von</label><input class="f-inp" type="time" id="zVon" value="'+vonDef+'"/></div>'+
-    '<div class="f-group"><label class="f-lbl">Bis</label><input class="f-inp" type="time" id="zBis" value="'+bisDef+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Von Datum</label><input class="f-inp" type="date" id="zDatVon" value="'+key+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis Datum</label><input class="f-inp" type="date" id="zDatBis" value="'+key+'"/></div>'+
+    '</div>';
+  html+='<div class="f-row">'+
+    '<div class="f-group"><label class="f-lbl">Von Uhrzeit</label><input class="f-inp" type="time" id="zVon" value="'+vonDef+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis Uhrzeit</label><input class="f-inp" type="time" id="zBis" value="'+bisDef+'"/></div>'+
     '</div>';
   html+='<button class="btn-suc" id="eintrBtn">✓ Eintragen</button>';
   html+='<button class="btn-gh" onclick="mitgliedWaehlen(\''+key+'\',\''+evId+'\')">Zurück</button>';
   openModal(html);
 
-  // Button direkt nach dem Rendern verknüpfen
   document.getElementById('eintrBtn').onclick=function(){
+    var dVon=document.getElementById('zDatVon').value||key;
+    var dBis=document.getElementById('zDatBis').value||dVon;
     var von=document.getElementById('zVon').value||vonDef;
     var bis=document.getElementById('zBis').value||bisDef;
-    eintragen(key,evId,name,von,bis);
+    eintragenMehrfach(dVon,dBis,evId,name,von,bis);
   };
+}
+
+function eintragenMehrfach(dVon,dBis,evId,name,von,bis){
+  var start=new Date(dVon);
+  var ende=new Date(dBis);
+  if(ende<start){alert('Bis-Datum muss nach Von-Datum liegen!');return;}
+  var mb=getMember(name);
+  var cur=new Date(start);
+  var anzahl=0;
+  while(cur<=ende){
+    var y=cur.getFullYear();
+    var m=cur.getMonth();
+    var d=cur.getDate();
+    var k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    if(!S.eintraege[k]) S.eintraege[k]=[];
+    S.eintraege[k]=S.eintraege[k].filter(function(x){return !(x.name===name&&(x.evId||'')===(evId||''));});
+    S.eintraege[k].push({name:name,color:mb.color,von:von,bis:bis,evId:evId||''});
+    anzahl++;
+    cur.setDate(cur.getDate()+1);
+  }
+  lokal();
+  hoch();
+  tagOeffnen(dVon);
+  if(anzahl>1)setTimeout(function(){alert('✅ '+anzahl+' Tage eingetragen!');},300);
 }
 
 function eintragen(key,evId,name,von,bis){
@@ -576,12 +607,15 @@ function adminAb(){S.isAdmin=false;lokal();zeige();}
 function neueVeranstaltung(){neueVeranstaltungAmTag(heute());}
 function neueVeranstaltungAmTag(key){
   var html='<div class="sh-title">📌 Neue Veranstaltung</div>'+
-    '<div class="sh-sub">Nur für Admins</div>'+
+    '<div class="sh-sub">Nur für Admins · Für mehrere Tage: Bis-Datum ausfüllen</div>'+
     '<div class="f-group"><label class="f-lbl">Titel</label><input class="f-inp" id="evT" placeholder="z.B. Motorradtreffen"/></div>'+
-    '<div class="f-group"><label class="f-lbl">Datum</label><input class="f-inp" type="date" id="evD" value="'+key+'"/></div>'+
     '<div class="f-row">'+
-    '<div class="f-group"><label class="f-lbl">Von</label><input class="f-inp" type="time" id="evV" value="09:00"/></div>'+
-    '<div class="f-group"><label class="f-lbl">Bis</label><input class="f-inp" type="time" id="evB" value="17:00"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Von Datum</label><input class="f-inp" type="date" id="evD" value="'+key+'"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis Datum (optional)</label><input class="f-inp" type="date" id="evDB" value="'+key+'"/></div>'+
+    '</div>'+
+    '<div class="f-row">'+
+    '<div class="f-group"><label class="f-lbl">Von Uhrzeit</label><input class="f-inp" type="time" id="evV" value="10:00"/></div>'+
+    '<div class="f-group"><label class="f-lbl">Bis Uhrzeit</label><input class="f-inp" type="time" id="evB" value="18:00"/></div>'+
     '</div>'+
     '<div class="f-group"><label class="f-lbl">Beschreibung (optional)</label><input class="f-inp" id="evBe" placeholder="Kurze Info…"/></div>'+
     '<button class="btn-pri" id="evSvBtn">💾 Speichern</button>'+
@@ -590,13 +624,29 @@ function neueVeranstaltungAmTag(key){
   document.getElementById('evSvBtn').onclick=function(){
     var t=document.getElementById('evT').value.trim();
     var d=document.getElementById('evD').value;
+    var dBis=document.getElementById('evDB').value||d;
     var v=document.getElementById('evV').value;
     var b=document.getElementById('evB').value;
     var be=document.getElementById('evBe').value.trim();
     if(!t||!d){alert('Bitte Titel und Datum angeben!');return;}
-    S.events.push({id:uid(),titel:t,datum:d,von:v,bis:b,beschreibung:be});
+    // Erstelle einen Eintrag pro Tag im Bereich
+    var start=new Date(d);
+    var ende=new Date(dBis);
+    if(ende<start){alert('Bis-Datum muss nach Von-Datum liegen!');return;}
+    var cur=new Date(start);
+    var anzahl=0;
+    while(cur<=ende){
+      var y=cur.getFullYear();
+      var m=cur.getMonth();
+      var dd=cur.getDate();
+      var dKey=y+'-'+String(m+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+      S.events.push({id:uid(),titel:t,datum:dKey,von:v,bis:b,beschreibung:be});
+      anzahl++;
+      cur.setDate(cur.getDate()+1);
+    }
     S.events.sort(function(a,b2){return a.datum.localeCompare(b2.datum);});
     lokal();hoch();closeModal();zeige();
+    if(anzahl>1)alert('✅ '+anzahl+' Tage eingetragen!');
   };
 }
 
@@ -745,15 +795,17 @@ function VBM(){var d=new Date(S.bjahr,S.bmonat-1);S.bjahr=d.getFullYear();S.bmon
 function NBM(){var d=new Date(S.bjahr,S.bmonat+1);S.bjahr=d.getFullYear();S.bmonat=d.getMonth();zeige();}
 function syncNeu(){runter().then(function(){zeige();});}
 
-// ─── ECHTZEIT-SYNC (alle 8 Sek) ──────────────────
+// ─── ECHTZEIT-SYNC (alle 4 Sek) ──────────────────
+var _letzteAenderung=0;
 setInterval(function(){
   var ok=localStorage.getItem('pin_ok')==='1'&&Date.now()-parseInt(localStorage.getItem('pin_ts')||'0')<86400000;
   if(!ok)return;
-  runter().then(function(){
-    // Nur neu rendern wenn Modal zu
-    if(document.getElementById('modal').style.display==='none') zeige();
-  });
-},8000);
+  // Nicht synchen wenn gerade eine Änderung war (Schutz vor Überschreiben)
+  if(Date.now()-_letzteAenderung<3000)return;
+  // Nicht synchen wenn Modal offen (lokale Eingabe läuft)
+  if(document.getElementById('modal').style.display!=='none')return;
+  runter().then(function(){zeige();});
+},4000);
 
 if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
 </script>
